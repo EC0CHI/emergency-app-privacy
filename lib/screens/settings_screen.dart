@@ -24,8 +24,11 @@ class SettingsScreen extends StatefulWidget {
 }
 
 class _SettingsScreenState extends State<SettingsScreen> {
+  String _userName = '';
   String _userId = '';
   bool _isLoading = true;
+  bool _showEditDialog = false;
+  final _editController = TextEditingController();
 
   @override
   void initState() {
@@ -33,9 +36,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
     _loadUserId();
   }
 
+  @override
+  void dispose() {
+    _editController.dispose();
+    super.dispose();
+  }
+
   Future<void> _loadUserId() async {
     final userId = await UserService.getUserId();
+    final userName = await UserService.getUserName();
     setState(() {
+      _userName = userName ?? '';
       _userId = userId;
       _isLoading = false;
     });
@@ -47,7 +58,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
       SnackBar(
         content: const Text('ID copied to clipboard'),
         behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        backgroundColor: Colors.white24,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         duration: const Duration(seconds: 2),
       ),
     );
@@ -60,278 +72,368 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
+  void _openEditDialog() {
+    _editController.text = _userName;
+    setState(() => _showEditDialog = true);
+  }
+
+  void _closeEditDialog() {
+    setState(() => _showEditDialog = false);
+  }
+
+  Future<void> _saveName(String name) async {
+    try {
+      await UserService.saveUserName(name);
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Saved locally. Sync error: $e')),
+        );
+      }
+    }
+    if (mounted) setState(() => _userName = name);
+  }
+
   @override
   Widget build(BuildContext context) {
     final loc = AppLocalizations.of(context)!;
 
-    return Scaffold(
-      backgroundColor: const Color(0xFFE8EDF2),
-      appBar: AppBar(
-        leading: IconButton(
-          icon: Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: Colors.grey[100],
-              borderRadius: BorderRadius.circular(12),
+    return Stack(
+      children: [
+        Scaffold(
+          backgroundColor: const Color(0xFF6B0000),
+          body: Container(
+            decoration: const BoxDecoration(
+              gradient: RadialGradient(
+                center: Alignment(0, -0.3),
+                radius: 1.2,
+                colors: [
+                  Color(0xFFB71C1C),
+                  Color(0xFF7B0000),
+                  Color(0xFF3A0000),
+                ],
+                stops: [0.0, 0.6, 1.0],
+              ),
             ),
-            child: const Icon(Icons.arrow_back_ios_new, color: Color(0xFF1A1A1A), size: 18),
-          ),
-          onPressed: () => Navigator.pop(context),
-        ),
-        title: Text(
-          loc.settings,
-          style: const TextStyle(
-            color: Color(0xFF1A1A1A),
-            fontWeight: FontWeight.w600,
-            fontSize: 20,
-          ),
-        ),
-        backgroundColor: Colors.white,
-        elevation: 0,
-        centerTitle: true,
-      ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator(color: Color(0xFFFF3B30)))
-          : ListView(
-              padding: const EdgeInsets.all(20),
-              children: [
-                // ID Card
-                Container(
-                  padding: const EdgeInsets.all(20),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(16),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.05),
-                        blurRadius: 20,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.all(8),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFFF3B30).withOpacity(0.1),
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            child: const Icon(
-                              Icons.fingerprint,
-                              color: Color(0xFFFF3B30),
-                              size: 20,
-                            ),
+            child: SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: Column(
+                  children: [
+                    // ── Header ─────────────────────────────────────────
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        GestureDetector(
+                          onTap: () => Navigator.pop(context),
+                          child: const Icon(
+                            Icons.arrow_back_ios_new,
+                            color: Colors.white70,
+                            size: 18,
                           ),
-                          const SizedBox(width: 12),
-                          const Text(
-                            'Your ID',
+                        ),
+                        const Expanded(
+                          child: Text(
+                            'Settings',
+                            textAlign: TextAlign.center,
                             style: TextStyle(
-                              fontSize: 14,
-                              color: Color(0xFF8E8E93),
-                              fontWeight: FontWeight.w500,
+                              color: Colors.white,
+                              fontWeight: FontWeight.w800,
+                              fontSize: 20,
+                              letterSpacing: 0.5,
                             ),
                           ),
-                        ],
-                      ),
-                      const SizedBox(height: 12),
-                      Text(
-                        _userId,
-                        style: const TextStyle(
-                          fontSize: 24,
-                          fontWeight: FontWeight.w700,
-                          letterSpacing: 3,
-                          color: Color(0xFF1A1A1A),
                         ),
-                      ),
-                      const SizedBox(height: 16),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: _buildActionButton(
-                              icon: Icons.content_copy,
-                              label: 'Copy',
-                              onTap: _copyToClipboard,
+                        const SizedBox(width: 18),
+                      ],
+                    ),
+
+                    const SizedBox(height: 80),
+
+                    // ── Content ────────────────────────────────────────
+                    Expanded(
+                      child: _isLoading
+                          ? const Center(
+                              child: CircularProgressIndicator(color: Colors.white),
+                            )
+                          : Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                // ── Profile info ───────────────────────
+                                _buildProfileRow(),
+
+                                const SizedBox(height: 60),
+
+                                // ── Menu items ─────────────────────────
+                                _buildMenuItem(
+                                  icon: Icons.shield_outlined,
+                                  title: loc.guardians,
+                                  onTap: () => Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) => const GuardiansScreen(),
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(height: 6),
+                                _buildMenuItem(
+                                  icon: Icons.favorite_outline,
+                                  title: loc.donate,
+                                  onTap: () => Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) => const DonateScreen(),
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(height: 6),
+                                _buildMenuItem(
+                                  icon: Icons.language_outlined,
+                                  title: loc.language,
+                                  onTap: () => Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) => LanguageScreen(
+                                        updateLocale: widget.updateLocale,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
-                          ),
-                          const SizedBox(width: 10),
-                          Expanded(
-                            child: _buildActionButton(
-                              icon: Icons.ios_share,
-                              label: 'Share',
-                              onTap: _shareId,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-
-                const SizedBox(height: 24),
-
-                // Settings Section
-                Container(
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(16),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.05),
-                        blurRadius: 20,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
-                  ),
-                  child: Column(
-                    children: [
-                      _buildSettingsItem(
-                        icon: Icons.shield_outlined,
-                        title: loc.guardians,
-                        onTap: () => Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const GuardiansScreen(),
-                          ),
-                        ),
-                        isFirst: true,
-                      ),
-                      _buildDivider(),
-                      _buildSettingsItem(
-                        icon: Icons.favorite_outline,
-                        title: loc.donate,
-                        onTap: () => Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const DonateScreen(),
-                          ),
-                        ),
-                      ),
-                      _buildDivider(),
-                      _buildSettingsItem(
-                        icon: Icons.language_outlined,
-                        title: loc.language,
-                        onTap: () => Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => LanguageScreen(updateLocale: widget.updateLocale),
-                          ),
-                        ),
-                        isLast: true,
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-    );
-  }
-
-  Widget _buildActionButton({
-    required IconData icon,
-    required String label,
-    required VoidCallback onTap,
-  }) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(10),
-        child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 12),
-          decoration: BoxDecoration(
-            color: Colors.grey[100],
-            borderRadius: BorderRadius.circular(10),
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(icon, size: 16, color: const Color(0xFF1A1A1A)),
-              const SizedBox(width: 6),
-              Text(
-                label,
-                style: const TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  color: Color(0xFF1A1A1A),
+                    ),
+                  ],
                 ),
               ),
-            ],
+            ),
           ),
         ),
-      ),
+
+        // ── Edit Name dialog ──────────────────────────────────────────
+        if (_showEditDialog)
+          const ModalBarrier(color: Colors.black54, dismissible: false),
+        if (_showEditDialog)
+          Center(
+            child: StatefulBuilder(
+              builder: (ctx, setDialogState) {
+                final canConfirm = _editController.text.trim().isNotEmpty;
+                return AlertDialog(
+                  backgroundColor: const Color(0xFF6B0000),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  title: const Text(
+                    'Edit Name',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  content: TextField(
+                    controller: _editController,
+                    maxLength: 50,
+                    style: const TextStyle(color: Colors.white),
+                    onChanged: (_) => setDialogState(() {}),
+                    decoration: InputDecoration(
+                      labelText: 'Your name',
+                      labelStyle:
+                          TextStyle(color: Colors.white.withOpacity(0.6)),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(
+                          color: Colors.white.withOpacity(0.3),
+                        ),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: const BorderSide(color: Colors.white),
+                      ),
+                      counterStyle:
+                          TextStyle(color: Colors.white.withOpacity(0.4)),
+                    ),
+                  ),
+                  actions: [
+                    TextButton(
+                      onPressed: _closeEditDialog,
+                      child: Text(
+                        'Cancel',
+                        style: TextStyle(
+                          color: Colors.white.withOpacity(0.6),
+                        ),
+                      ),
+                    ),
+                    ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.white,
+                        foregroundColor: const Color(0xFFB71C1C),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      onPressed: canConfirm
+                          ? () async {
+                              final name = _editController.text.trim();
+                              _closeEditDialog();
+                              await _saveName(name);
+                            }
+                          : null,
+                      child: const Text(
+                        'Save',
+                        style: TextStyle(fontWeight: FontWeight.w700),
+                      ),
+                    ),
+                  ],
+                );
+              },
+            ),
+          ),
+      ],
     );
   }
 
-  Widget _buildSettingsItem({
+  /// Profile: name block + ID block, labels underneath
+  Widget _buildProfileRow() {
+    return Column(
+      children: [
+        // ── Name block ──
+        Row(
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    _userName.isNotEmpty ? _userName : '—',
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.white,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    'Your name',
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: Colors.white.withOpacity(0.35),
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            GestureDetector(
+              onTap: _openEditDialog,
+              child: Padding(
+                padding: const EdgeInsets.all(8),
+                child: Icon(
+                  Icons.edit_outlined,
+                  color: Colors.white.withOpacity(0.5),
+                  size: 22,
+                ),
+              ),
+            ),
+          ],
+        ),
+
+        const SizedBox(height: 16),
+
+        // ── ID block ──
+        Row(
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    _userId,
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 2.5,
+                      color: Colors.white.withOpacity(0.75),
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    'Your ID',
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: Colors.white.withOpacity(0.35),
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            GestureDetector(
+              onTap: _copyToClipboard,
+              child: Padding(
+                padding: const EdgeInsets.all(8),
+                child: Icon(
+                  Icons.content_copy,
+                  color: Colors.white.withOpacity(0.5),
+                  size: 22,
+                ),
+              ),
+            ),
+            const SizedBox(width: 4),
+            GestureDetector(
+              onTap: _shareId,
+              child: Padding(
+                padding: const EdgeInsets.all(8),
+                child: Icon(
+                  Icons.ios_share,
+                  color: Colors.white.withOpacity(0.5),
+                  size: 22,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  /// Single menu item — no card wrapper, just a tappable row
+  Widget _buildMenuItem({
     required IconData icon,
     required String title,
     required VoidCallback onTap,
-    bool isFirst = false,
-    bool isLast = false,
   }) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.vertical(
-          top: isFirst ? const Radius.circular(16) : Radius.zero,
-          bottom: isLast ? const Radius.circular(16) : Radius.zero,
+    return GestureDetector(
+      onTap: onTap,
+      behavior: HitTestBehavior.opaque,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 14),
+        child: Row(
+          children: [
+            Icon(icon, color: Colors.white.withOpacity(0.6), size: 22),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Text(
+                title,
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+            Icon(
+              Icons.arrow_forward_ios,
+              size: 14,
+              color: Colors.white.withOpacity(0.3),
+            ),
+          ],
         ),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-          child: Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFFF3B30).withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Icon(
-                  icon,
-                  color: const Color(0xFFFF3B30),
-                  size: 20,
-                ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Text(
-                  title,
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w500,
-                    color: Color(0xFF1A1A1A),
-                  ),
-                ),
-              ),
-              const Icon(
-                Icons.arrow_forward_ios,
-                size: 16,
-                color: Color(0xFF8E8E93),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildDivider() {
-    return Padding(
-      padding: const EdgeInsets.only(left: 64),
-      child: Container(
-        height: 0.5,
-        color: Colors.grey[300],
       ),
     );
   }
 }
 
-// EmergencyNumberScreen остается без изменений
+// ── EmergencyNumberScreen ─────────────────────────────────────────────────────
+
 class EmergencyNumberScreen extends StatefulWidget {
   const EmergencyNumberScreen({super.key});
 
@@ -389,21 +491,28 @@ class _EmergencyNumberScreenState extends State<EmergencyNumberScreen> {
     if (hasErrors) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: const Text('Fix invalid IDs (format: 8 characters A-Z, 0-9)'),
-          backgroundColor: Colors.red[700],
+          content: const Text(
+              'Fix invalid IDs (format: 8 characters A-Z, 0-9)'),
+          backgroundColor: Colors.red[900],
           behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         ),
       );
       return;
     }
 
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('guardian1', _controllers['guardian1']!.text.trim().toUpperCase());
-    await prefs.setString('guardian2', _controllers['guardian2']!.text.trim().toUpperCase());
-    await prefs.setString('guardian3', _controllers['guardian3']!.text.trim().toUpperCase());
-    await prefs.setString('guardian4', _controllers['guardian4']!.text.trim().toUpperCase());
-    await prefs.setString('guardian5', _controllers['guardian5']!.text.trim().toUpperCase());
+    await prefs.setString(
+        'guardian1', _controllers['guardian1']!.text.trim().toUpperCase());
+    await prefs.setString(
+        'guardian2', _controllers['guardian2']!.text.trim().toUpperCase());
+    await prefs.setString(
+        'guardian3', _controllers['guardian3']!.text.trim().toUpperCase());
+    await prefs.setString(
+        'guardian4', _controllers['guardian4']!.text.trim().toUpperCase());
+    await prefs.setString(
+        'guardian5', _controllers['guardian5']!.text.trim().toUpperCase());
 
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -411,7 +520,8 @@ class _EmergencyNumberScreenState extends State<EmergencyNumberScreen> {
           content: const Text('Guardians saved'),
           backgroundColor: Colors.green[700],
           behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         ),
       );
       Navigator.pop(context);
@@ -429,100 +539,127 @@ class _EmergencyNumberScreenState extends State<EmergencyNumberScreen> {
     final loc = AppLocalizations.of(context)!;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFE8EDF2),
-      appBar: AppBar(
-        leading: IconButton(
-          icon: Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: Colors.grey[100],
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: const Icon(Icons.arrow_back_ios_new, color: Color(0xFF1A1A1A), size: 18),
-          ),
-          onPressed: () => Navigator.pop(context),
-        ),
-        title: Text(
-          loc.guardians,
-          style: const TextStyle(
-            color: Color(0xFF1A1A1A),
-            fontWeight: FontWeight.w600,
-            fontSize: 20,
+      backgroundColor: const Color(0xFF6B0000),
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: RadialGradient(
+            center: Alignment(0, -0.3),
+            radius: 1.2,
+            colors: [
+              Color(0xFFB71C1C),
+              Color(0xFF7B0000),
+              Color(0xFF3A0000),
+            ],
+            stops: [0.0, 0.6, 1.0],
           ),
         ),
-        backgroundColor: Colors.white,
-        centerTitle: true,
-        elevation: 0,
-      ),
-      body: Column(
-        children: [
-          Expanded(
-            child: ListView(
-              padding: const EdgeInsets.all(20),
-              children: [
-                Text(
-                loc.guardiansList,
-                style: TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.w700,
-                  color: Colors.grey[900],
+        child: SafeArea(
+          child: Column(
+            children: [
+              // ── AppBar ─────────────────────────────────────────────────
+              Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                child: Row(
+                  children: [
+                    GestureDetector(
+                      onTap: () => Navigator.pop(context),
+                      child: Container(
+                        width: 40,
+                        height: 40,
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.15),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: const Icon(Icons.arrow_back_ios_new,
+                            color: Colors.white, size: 18),
+                      ),
+                    ),
+                    Expanded(
+                      child: Text(
+                        loc.guardians,
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w800,
+                          fontSize: 22,
+                          letterSpacing: 0.5,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 40),
+                  ],
                 ),
               ),
-              const SizedBox(height: 8),
-              Text(
-                loc.enterGuardianNumbers,
-                style: TextStyle(
-                  fontSize: 15,
-                  color: Colors.grey[600],
+
+              // ── List ───────────────────────────────────────────────────
+              Expanded(
+                child: ListView(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  children: [
+                    const SizedBox(height: 8),
+                    Text(
+                      loc.guardiansList,
+                      style: const TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.w800,
+                        color: Colors.white,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      loc.enterGuardianNumbers,
+                      style: TextStyle(
+                        fontSize: 15,
+                        color: Colors.white.withOpacity(0.6),
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    _buildIdField(
+                        'guardian1', loc.guardian1, loc.examplePhone),
+                    _buildIdField(
+                        'guardian2', loc.guardian2, loc.examplePhone),
+                    _buildIdField(
+                        'guardian3', loc.guardian3, loc.examplePhone),
+                    _buildIdField(
+                        'guardian4', loc.guardian4, loc.examplePhone),
+                    _buildIdField(
+                        'guardian5', loc.guardian5, loc.examplePhone),
+                  ],
                 ),
               ),
-              const SizedBox(height: 24),
-              _buildIdField('guardian1', loc.guardian1, loc.examplePhone),
-              _buildIdField('guardian2', loc.guardian2, loc.examplePhone),
-              _buildIdField('guardian3', loc.guardian3, loc.examplePhone),
-              _buildIdField('guardian4', loc.guardian4, loc.examplePhone),
-              _buildIdField('guardian5', loc.guardian5, loc.examplePhone),
-              ],
-            ),
-          ),
-          Container(
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.05),
-                  blurRadius: 20,
-                  offset: const Offset(0, -4),
-                ),
-              ],
-            ),
-            child: SafeArea(
-              child: SizedBox(
-                width: double.infinity,
-                height: 56,
-                child: ElevatedButton(
-                  onPressed: _saveGuardianIds,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFFFF3B30),
-                    foregroundColor: Colors.white,
-                    elevation: 0,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
+
+              // ── Save button ────────────────────────────────────────────
+              Padding(
+                padding: const EdgeInsets.all(20),
+                child: SizedBox(
+                  width: double.infinity,
+                  height: 72,
+                  child: GestureDetector(
+                    onTap: _saveGuardianIds,
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(36),
+                      ),
+                      child: Center(
+                        child: Text(
+                          loc.save,
+                          style: const TextStyle(
+                            color: Color(0xFFB71C1C),
+                            fontSize: 18,
+                            fontWeight: FontWeight.w900,
+                            letterSpacing: 1,
+                          ),
+                        ),
+                      ),
                     ),
                   ),
-                  child: Text(
-                    loc.save,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
                 ),
               ),
-            ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
@@ -531,51 +668,59 @@ class _EmergencyNumberScreenState extends State<EmergencyNumberScreen> {
     final hasError = _errors[key] ?? false;
 
     return Padding(
-      padding: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.only(bottom: 14),
       child: TextField(
         controller: _controllers[key],
         textCapitalization: TextCapitalization.characters,
         maxLength: 8,
         style: const TextStyle(
           fontSize: 16,
-          fontWeight: FontWeight.w600,
+          fontWeight: FontWeight.w700,
           letterSpacing: 2,
+          color: Colors.white,
         ),
         decoration: InputDecoration(
           filled: true,
-          fillColor: Colors.white,
+          fillColor: Colors.white.withOpacity(0.12),
           border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(14),
             borderSide: BorderSide(
-              color: hasError ? Colors.red : Colors.grey[300]!,
+              color: hasError
+                  ? Colors.redAccent
+                  : Colors.white.withOpacity(0.2),
               width: 1.5,
             ),
           ),
           enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(14),
             borderSide: BorderSide(
-              color: hasError ? Colors.red : Colors.grey[300]!,
+              color: hasError
+                  ? Colors.redAccent
+                  : Colors.white.withOpacity(0.2),
               width: 1.5,
             ),
           ),
           focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide(
-              color: hasError ? Colors.red : const Color(0xFFFF3B30),
-              width: 2,
-            ),
+            borderRadius: BorderRadius.circular(14),
+            borderSide: const BorderSide(color: Colors.white, width: 2),
           ),
           hintText: hint,
+          hintStyle: TextStyle(
+              color: Colors.white.withOpacity(0.3), letterSpacing: 0),
           labelText: label,
           labelStyle: TextStyle(
-            color: hasError ? Colors.red : Colors.grey[600],
+            color: hasError
+                ? Colors.redAccent
+                : Colors.white.withOpacity(0.6),
             fontWeight: FontWeight.w500,
           ),
           counterText: '',
           errorText: hasError ? 'Invalid ID format' : null,
+          errorStyle: const TextStyle(color: Colors.redAccent),
           suffixIcon: _controllers[key]!.text.isNotEmpty
               ? IconButton(
-                  icon: const Icon(Icons.clear, size: 20),
+                  icon: Icon(Icons.clear,
+                      size: 20, color: Colors.white.withOpacity(0.5)),
                   onPressed: () {
                     setState(() {
                       _controllers[key]!.clear();
@@ -586,9 +731,7 @@ class _EmergencyNumberScreenState extends State<EmergencyNumberScreen> {
               : null,
         ),
         onChanged: (value) {
-          setState(() {
-            _errors.remove(key);
-          });
+          setState(() => _errors.remove(key));
         },
       ),
     );
