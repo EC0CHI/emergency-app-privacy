@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import '../services/guardians_service.dart';
 
 class _UpperCaseTextFormatter extends TextInputFormatter {
@@ -118,7 +118,7 @@ class _GuardiansScreenState extends State<GuardiansScreen> {
       setState(() {});
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: const Text('Guardians saved'),
+          content: const Text('Saved'),
           backgroundColor: Colors.white24,
           behavior: SnackBarBehavior.floating,
           shape:
@@ -174,6 +174,7 @@ class _GuardiansScreenState extends State<GuardiansScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final loc = AppLocalizations.of(context)!;
     return Scaffold(
       backgroundColor: const Color(0xFF6B0000),
       body: Container(
@@ -199,9 +200,9 @@ class _GuardiansScreenState extends State<GuardiansScreen> {
                       child: const Icon(Icons.arrow_back_ios_new,
                           color: Colors.white70, size: 18),
                     ),
-                    const Expanded(
+                    Expanded(
                       child: Text(
-                        'Guardians',
+                        loc.guardians,
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           color: Colors.white,
@@ -246,9 +247,9 @@ class _GuardiansScreenState extends State<GuardiansScreen> {
                           width: 1,
                         ),
                       ),
-                      child: const Center(
+                      child: Center(
                         child: Text(
-                          'SAVE',
+                          loc.save,
                           style: TextStyle(
                             color: Colors.white,
                             fontSize: 20,

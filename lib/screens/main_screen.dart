@@ -9,6 +9,7 @@ import 'dart:math' as math;
 import 'package:vibration/vibration.dart';
 import 'settings_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class MainScreen extends StatefulWidget {
   final void Function(String) updateLocale;
@@ -193,6 +194,7 @@ class _MainScreenState extends State<MainScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final loc = AppLocalizations.of(context)!;
     return Scaffold(
       backgroundColor: const Color(0xFF6B0000),
       body: Container(
@@ -293,10 +295,9 @@ class _MainScreenState extends State<MainScreen> {
                             children: [
                               Text(
                                 _isSending
-                                    ? 'Sending emergency alert...'
-                                    : _isLongPressing
-                                        ? 'Keep holding...'
-                                        : 'Hold for 5 seconds to send SOS',
+                                    ? loc.sendingAlert
+                                    : _isLongPressing ? loc.keepHolding
+                                    : loc.holdToSend,
                                 style: TextStyle(
                                   fontSize: 14,
                                   color: Colors.white.withOpacity(0.6),

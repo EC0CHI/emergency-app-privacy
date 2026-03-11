@@ -153,7 +153,7 @@ class DonateScreen extends StatelessWidget {
                                       ),
                                       const SizedBox(height: 4),
                                       Text(
-                                        'Any amount',
+                                        loc.anyAmount,
                                         style: TextStyle(
                                           fontSize: 14,
                                           color: Colors.white.withOpacity(0.5),

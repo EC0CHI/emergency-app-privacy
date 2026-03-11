@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../services/user_service.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class WelcomeScreen extends StatefulWidget {
   const WelcomeScreen({super.key});
@@ -44,6 +45,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
   @override
   Widget build(BuildContext context) {
     final canSubmit = !_isSaving && _controller.text.trim().isNotEmpty;
+    final loc = AppLocalizations.of(context)!;
 
     return Scaffold(
       backgroundColor: const Color(0xFF6B0000),
@@ -69,8 +71,8 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                 const Spacer(),
 
                 // ── Title ──────────────────────────────────────────────────
-                const Text(
-                  'Welcome',
+                Text(
+                  loc.welcome,
                   style: TextStyle(
                     fontSize: 40,
                     fontWeight: FontWeight.w900,
@@ -79,9 +81,9 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                   ),
                   textAlign: TextAlign.center,
                 ),
-                const SizedBox(height: 12),
+                SizedBox(height: 12),
                 Text(
-                  'Enter your name so your\nguardians can identify you.',
+                  loc.welcomeDescription,
                   style: TextStyle(
                     fontSize: 16,
                     color: Colors.white.withOpacity(0.6),
@@ -143,7 +145,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                               ),
                             )
                           : Text(
-                              'Continue',
+                              loc.continueButton,
                               key: const Key('welcome_continue_button'),
                               style: TextStyle(
                                 color: canSubmit
