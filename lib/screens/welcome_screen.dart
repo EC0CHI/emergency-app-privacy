@@ -26,7 +26,12 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Saved locally. Sync error: $e')),
+          SnackBar(
+            content: Text('Saved locally. Sync error: $e'),
+            backgroundColor: Colors.white24,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          ),
         );
       }
     }
@@ -41,42 +46,121 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
     final canSubmit = !_isSaving && _controller.text.trim().isNotEmpty;
 
     return Scaffold(
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 48),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              const Text(
-                'Welcome',
-                style: TextStyle(fontSize: 28, fontWeight: FontWeight.w700),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 8),
-              const Text(
-                'Enter your name so your guardians can identify you.',
-                style: TextStyle(fontSize: 16, color: Colors.grey),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 40),
-              TextField(
-                key: const Key('welcome_name_field'),
-                controller: _controller,
-                maxLength: 50,
-                onChanged: (_) => setState(() {}),
-                decoration: const InputDecoration(
-                  labelText: 'Your name',
-                  border: OutlineInputBorder(),
-                ),
-              ),
-              const SizedBox(height: 16),
-              ElevatedButton(
-                key: const Key('welcome_continue_button'),
-                onPressed: canSubmit ? _onContinue : null,
-                child: const Text('Continue'),
-              ),
+      backgroundColor: const Color(0xFF6B0000),
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: RadialGradient(
+            center: Alignment(0, -0.3),
+            radius: 1.2,
+            colors: [
+              Color(0xFFB71C1C),
+              Color(0xFF7B0000),
+              Color(0xFF3A0000),
             ],
+            stops: [0.0, 0.6, 1.0],
+          ),
+        ),
+        child: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 48),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                const Spacer(),
+
+                // ── Title ──────────────────────────────────────────────────
+                const Text(
+                  'Welcome',
+                  style: TextStyle(
+                    fontSize: 40,
+                    fontWeight: FontWeight.w900,
+                    color: Colors.white,
+                    letterSpacing: 0.5,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  'Enter your name so your\nguardians can identify you.',
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: Colors.white.withOpacity(0.6),
+                    height: 1.5,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+
+                const Spacer(),
+
+                // ── Input ──────────────────────────────────────────────────
+                TextField(
+                  key: const Key('welcome_name_field'),
+                  controller: _controller,
+                  maxLength: 50,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                  ),
+                  onChanged: (_) => setState(() {}),
+                  decoration: InputDecoration(
+                    filled: true,
+                    fillColor: Colors.white.withOpacity(0.12),
+                    labelText: 'Your name',
+                    labelStyle: TextStyle(color: Colors.white.withOpacity(0.6)),
+                    counterStyle: TextStyle(color: Colors.white.withOpacity(0.3)),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(16),
+                      borderSide: BorderSide(color: Colors.white.withOpacity(0.2), width: 1.5),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(16),
+                      borderSide: const BorderSide(color: Colors.white, width: 2),
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 16),
+
+                // ── Button ─────────────────────────────────────────────────
+                GestureDetector(
+                  onTap: canSubmit ? _onContinue : null,
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 200),
+                    height: 72,
+                    decoration: BoxDecoration(
+                      color: canSubmit ? Colors.white : Colors.white.withOpacity(0.25),
+                      borderRadius: BorderRadius.circular(36),
+                    ),
+                    child: Center(
+                      child: _isSaving
+                          ? SizedBox(
+                              width: 28,
+                              height: 28,
+                              child: CircularProgressIndicator(
+                                color: const Color(0xFFB71C1C),
+                                strokeWidth: 2.5,
+                              ),
+                            )
+                          : Text(
+                              'Continue',
+                              key: const Key('welcome_continue_button'),
+                              style: TextStyle(
+                                color: canSubmit
+                                    ? const Color(0xFFB71C1C)
+                                    : Colors.white.withOpacity(0.4),
+                                fontSize: 18,
+                                fontWeight: FontWeight.w900,
+                                letterSpacing: 0.5,
+                              ),
+                            ),
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 32),
+              ],
+            ),
           ),
         ),
       ),

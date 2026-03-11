@@ -116,21 +116,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
             ),
             child: SafeArea(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: Column(
-                  children: [
-                    // ── Header ─────────────────────────────────────────
-                    const SizedBox(height: 8),
-                    Row(
+              child: Column(
+                children: [
+                  // ── AppBar ───────────────────────────────────────────
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                    child: Row(
                       children: [
                         GestureDetector(
                           onTap: () => Navigator.pop(context),
-                          child: const Icon(
-                            Icons.arrow_back_ios_new,
-                            color: Colors.white70,
-                            size: 18,
-                          ),
+                          child: const Icon(Icons.arrow_back_ios_new, color: Colors.white70, size: 18),
                         ),
                         const Expanded(
                           child: Text(
@@ -139,7 +134,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             style: TextStyle(
                               color: Colors.white,
                               fontWeight: FontWeight.w800,
-                              fontSize: 20,
+                              fontSize: 22,
                               letterSpacing: 0.5,
                             ),
                           ),
@@ -147,63 +142,173 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         const SizedBox(width: 18),
                       ],
                     ),
+                  ),
 
-                    const SizedBox(height: 80),
+                  // ── Content ──────────────────────────────────────────
+                  Expanded(
+                    child: _isLoading
+                        ? const Center(child: CircularProgressIndicator(color: Colors.white))
+                        : ListView(
+                            padding: const EdgeInsets.symmetric(horizontal: 20),
+                            children: [
+                              const SizedBox(height: 8),
 
-                    // ── Content ────────────────────────────────────────
-                    Expanded(
-                      child: _isLoading
-                          ? const Center(
-                              child: CircularProgressIndicator(color: Colors.white),
-                            )
-                          : Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                // ── Profile info ───────────────────────
-                                _buildProfileRow(),
-
-                                const SizedBox(height: 60),
-
-                                // ── Menu items ─────────────────────────
-                                _buildMenuItem(
-                                  icon: Icons.shield_outlined,
-                                  title: loc.guardians,
-                                  onTap: () => Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (_) => const GuardiansScreen(),
+                              // ── Profile card ─────────────────────────
+                              Container(
+                                padding: const EdgeInsets.all(20),
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withOpacity(0.12),
+                                  borderRadius: BorderRadius.circular(20),
+                                  border: Border.all(color: Colors.white.withOpacity(0.2), width: 1),
+                                ),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    // Name row
+                                    Row(
+                                      children: [
+                                        Expanded(
+                                          child: Column(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                _userName.isNotEmpty ? _userName : '—',
+                                                style: const TextStyle(
+                                                  fontSize: 22,
+                                                  fontWeight: FontWeight.w800,
+                                                  color: Colors.white,
+                                                ),
+                                              ),
+                                              const SizedBox(height: 2),
+                                              Text(
+                                                'Your name',
+                                                style: TextStyle(
+                                                  fontSize: 14,
+                                                  color: Colors.white.withOpacity(0.5),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                        GestureDetector(
+                                          onTap: _openEditDialog,
+                                          child: Container(
+                                            width: 44,
+                                            height: 44,
+                                            decoration: BoxDecoration(
+                                              color: Colors.white.withOpacity(0.15),
+                                              borderRadius: BorderRadius.circular(12),
+                                            ),
+                                            child: const Icon(Icons.edit_outlined, color: Colors.white, size: 20),
+                                          ),
+                                        ),
+                                      ],
                                     ),
+
+                                    const SizedBox(height: 20),
+
+                                    // ID row
+                                    Row(
+                                      children: [
+                                        Expanded(
+                                          child: Column(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                _userId,
+                                                style: TextStyle(
+                                                  fontSize: 22,
+                                                  fontWeight: FontWeight.w800,
+                                                  letterSpacing: 2.5,
+                                                  color: Colors.white.withOpacity(0.85),
+                                                ),
+                                              ),
+                                              const SizedBox(height: 2),
+                                              Text(
+                                                'Your ID',
+                                                style: TextStyle(
+                                                  fontSize: 14,
+                                                  color: Colors.white.withOpacity(0.5),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                        GestureDetector(
+                                          onTap: _copyToClipboard,
+                                          child: Container(
+                                            width: 44,
+                                            height: 44,
+                                            decoration: BoxDecoration(
+                                              color: Colors.white.withOpacity(0.15),
+                                              borderRadius: BorderRadius.circular(12),
+                                            ),
+                                            child: const Icon(Icons.content_copy, color: Colors.white, size: 20),
+                                          ),
+                                        ),
+                                        const SizedBox(width: 10),
+                                        GestureDetector(
+                                          onTap: _shareId,
+                                          child: Container(
+                                            width: 44,
+                                            height: 44,
+                                            decoration: BoxDecoration(
+                                              color: Colors.white.withOpacity(0.15),
+                                              borderRadius: BorderRadius.circular(12),
+                                            ),
+                                            child: const Icon(Icons.ios_share, color: Colors.white, size: 20),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                              ),
+
+                              const SizedBox(height: 20),
+
+                              // ── Menu items (donate crypto style) ───
+                              _buildMenuCard(
+                                icon: Icons.shield_outlined,
+                                title: loc.guardians,
+                                subtitle: 'Manage your guardians',
+                                onTap: () => Navigator.push(
+                                  context,
+                                  MaterialPageRoute(builder: (_) => const GuardiansScreen()),
+                                ),
+                              ),
+
+                              const SizedBox(height: 14),
+
+                              _buildMenuCard(
+                                icon: Icons.favorite_outline,
+                                title: loc.donate,
+                                subtitle: 'Support development',
+                                onTap: () => Navigator.push(
+                                  context,
+                                  MaterialPageRoute(builder: (_) => const DonateScreen()),
+                                ),
+                              ),
+
+                              const SizedBox(height: 14),
+
+                              _buildMenuCard(
+                                icon: Icons.language_outlined,
+                                title: loc.language,
+                                subtitle: 'Change app language',
+                                onTap: () => Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => LanguageScreen(updateLocale: widget.updateLocale),
                                   ),
                                 ),
-                                const SizedBox(height: 6),
-                                _buildMenuItem(
-                                  icon: Icons.favorite_outline,
-                                  title: loc.donate,
-                                  onTap: () => Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (_) => const DonateScreen(),
-                                    ),
-                                  ),
-                                ),
-                                const SizedBox(height: 6),
-                                _buildMenuItem(
-                                  icon: Icons.language_outlined,
-                                  title: loc.language,
-                                  onTap: () => Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (_) => LanguageScreen(
-                                        updateLocale: widget.updateLocale,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                    ),
-                  ],
-                ),
+                              ),
+
+                              const SizedBox(height: 32),
+                            ],
+                          ),
+                  ),
+                ],
               ),
             ),
           ),
@@ -236,20 +341,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     onChanged: (_) => setDialogState(() {}),
                     decoration: InputDecoration(
                       labelText: 'Your name',
-                      labelStyle:
-                          TextStyle(color: Colors.white.withOpacity(0.6)),
+                      labelStyle: TextStyle(color: Colors.white.withOpacity(0.6)),
                       enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide(
-                          color: Colors.white.withOpacity(0.3),
-                        ),
+                        borderSide: BorderSide(color: Colors.white.withOpacity(0.3)),
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
                         borderSide: const BorderSide(color: Colors.white),
                       ),
-                      counterStyle:
-                          TextStyle(color: Colors.white.withOpacity(0.4)),
+                      counterStyle: TextStyle(color: Colors.white.withOpacity(0.4)),
                     ),
                   ),
                   actions: [
@@ -257,9 +358,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       onPressed: _closeEditDialog,
                       child: Text(
                         'Cancel',
-                        style: TextStyle(
-                          color: Colors.white.withOpacity(0.6),
-                        ),
+                        style: TextStyle(color: Colors.white.withOpacity(0.6)),
                       ),
                     ),
                     ElevatedButton(
@@ -291,141 +390,64 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  /// Profile: name block + ID block, labels underneath
-  Widget _buildProfileRow() {
-    return Column(
-      children: [
-        // ── Name block ──
-        Row(
-          children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    _userName.isNotEmpty ? _userName : '—',
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w700,
-                      color: Colors.white,
-                    ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    'Your name',
-                    style: TextStyle(
-                      fontSize: 13,
-                      color: Colors.white.withOpacity(0.35),
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            GestureDetector(
-              onTap: _openEditDialog,
-              child: Padding(
-                padding: const EdgeInsets.all(8),
-                child: Icon(
-                  Icons.edit_outlined,
-                  color: Colors.white.withOpacity(0.5),
-                  size: 22,
-                ),
-              ),
-            ),
-          ],
-        ),
-
-        const SizedBox(height: 16),
-
-        // ── ID block ──
-        Row(
-          children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    _userId,
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: 2.5,
-                      color: Colors.white.withOpacity(0.75),
-                    ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    'Your ID',
-                    style: TextStyle(
-                      fontSize: 13,
-                      color: Colors.white.withOpacity(0.35),
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            GestureDetector(
-              onTap: _copyToClipboard,
-              child: Padding(
-                padding: const EdgeInsets.all(8),
-                child: Icon(
-                  Icons.content_copy,
-                  color: Colors.white.withOpacity(0.5),
-                  size: 22,
-                ),
-              ),
-            ),
-            const SizedBox(width: 4),
-            GestureDetector(
-              onTap: _shareId,
-              child: Padding(
-                padding: const EdgeInsets.all(8),
-                child: Icon(
-                  Icons.ios_share,
-                  color: Colors.white.withOpacity(0.5),
-                  size: 22,
-                ),
-              ),
-            ),
-          ],
-        ),
-      ],
-    );
-  }
-
-  /// Single menu item — no card wrapper, just a tappable row
-  Widget _buildMenuItem({
+  Widget _buildMenuCard({
     required IconData icon,
     required String title,
+    required String subtitle,
     required VoidCallback onTap,
   }) {
-    return GestureDetector(
-      onTap: onTap,
-      behavior: HitTestBehavior.opaque,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 14),
-        child: Row(
-          children: [
-            Icon(icon, color: Colors.white.withOpacity(0.6), size: 22),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Text(
-                title,
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w500,
-                  color: Colors.white,
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.12),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Colors.white.withOpacity(0.2), width: 1),
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(20),
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Row(
+              children: [
+                Container(
+                  width: 52,
+                  height: 52,
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.15),
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  child: Icon(icon, color: Colors.white, size: 28),
                 ),
-              ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        title,
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
+                          color: Colors.white,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        subtitle,
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Colors.white.withOpacity(0.5),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Icon(Icons.arrow_forward_ios, size: 16, color: Colors.white.withOpacity(0.4)),
+              ],
             ),
-            Icon(
-              Icons.arrow_forward_ios,
-              size: 14,
-              color: Colors.white.withOpacity(0.3),
-            ),
-          ],
+          ),
         ),
       ),
     );
@@ -491,28 +513,21 @@ class _EmergencyNumberScreenState extends State<EmergencyNumberScreen> {
     if (hasErrors) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: const Text(
-              'Fix invalid IDs (format: 8 characters A-Z, 0-9)'),
+          content: const Text('Fix invalid IDs (format: 8 characters A-Z, 0-9)'),
           backgroundColor: Colors.red[900],
           behavior: SnackBarBehavior.floating,
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         ),
       );
       return;
     }
 
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(
-        'guardian1', _controllers['guardian1']!.text.trim().toUpperCase());
-    await prefs.setString(
-        'guardian2', _controllers['guardian2']!.text.trim().toUpperCase());
-    await prefs.setString(
-        'guardian3', _controllers['guardian3']!.text.trim().toUpperCase());
-    await prefs.setString(
-        'guardian4', _controllers['guardian4']!.text.trim().toUpperCase());
-    await prefs.setString(
-        'guardian5', _controllers['guardian5']!.text.trim().toUpperCase());
+    await prefs.setString('guardian1', _controllers['guardian1']!.text.trim().toUpperCase());
+    await prefs.setString('guardian2', _controllers['guardian2']!.text.trim().toUpperCase());
+    await prefs.setString('guardian3', _controllers['guardian3']!.text.trim().toUpperCase());
+    await prefs.setString('guardian4', _controllers['guardian4']!.text.trim().toUpperCase());
+    await prefs.setString('guardian5', _controllers['guardian5']!.text.trim().toUpperCase());
 
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -520,8 +535,7 @@ class _EmergencyNumberScreenState extends State<EmergencyNumberScreen> {
           content: const Text('Guardians saved'),
           backgroundColor: Colors.green[700],
           behavior: SnackBarBehavior.floating,
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         ),
       );
       Navigator.pop(context);
@@ -556,10 +570,8 @@ class _EmergencyNumberScreenState extends State<EmergencyNumberScreen> {
         child: SafeArea(
           child: Column(
             children: [
-              // ── AppBar ─────────────────────────────────────────────────
               Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
                 child: Row(
                   children: [
                     GestureDetector(
@@ -571,8 +583,7 @@ class _EmergencyNumberScreenState extends State<EmergencyNumberScreen> {
                           color: Colors.white.withOpacity(0.15),
                           borderRadius: BorderRadius.circular(12),
                         ),
-                        child: const Icon(Icons.arrow_back_ios_new,
-                            color: Colors.white, size: 18),
+                        child: const Icon(Icons.arrow_back_ios_new, color: Colors.white, size: 18),
                       ),
                     ),
                     Expanded(
@@ -591,8 +602,6 @@ class _EmergencyNumberScreenState extends State<EmergencyNumberScreen> {
                   ],
                 ),
               ),
-
-              // ── List ───────────────────────────────────────────────────
               Expanded(
                 child: ListView(
                   padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -615,21 +624,14 @@ class _EmergencyNumberScreenState extends State<EmergencyNumberScreen> {
                       ),
                     ),
                     const SizedBox(height: 24),
-                    _buildIdField(
-                        'guardian1', loc.guardian1, loc.examplePhone),
-                    _buildIdField(
-                        'guardian2', loc.guardian2, loc.examplePhone),
-                    _buildIdField(
-                        'guardian3', loc.guardian3, loc.examplePhone),
-                    _buildIdField(
-                        'guardian4', loc.guardian4, loc.examplePhone),
-                    _buildIdField(
-                        'guardian5', loc.guardian5, loc.examplePhone),
+                    _buildIdField('guardian1', loc.guardian1, loc.examplePhone),
+                    _buildIdField('guardian2', loc.guardian2, loc.examplePhone),
+                    _buildIdField('guardian3', loc.guardian3, loc.examplePhone),
+                    _buildIdField('guardian4', loc.guardian4, loc.examplePhone),
+                    _buildIdField('guardian5', loc.guardian5, loc.examplePhone),
                   ],
                 ),
               ),
-
-              // ── Save button ────────────────────────────────────────────
               Padding(
                 padding: const EdgeInsets.all(20),
                 child: SizedBox(
@@ -685,18 +687,14 @@ class _EmergencyNumberScreenState extends State<EmergencyNumberScreen> {
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(14),
             borderSide: BorderSide(
-              color: hasError
-                  ? Colors.redAccent
-                  : Colors.white.withOpacity(0.2),
+              color: hasError ? Colors.redAccent : Colors.white.withOpacity(0.2),
               width: 1.5,
             ),
           ),
           enabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(14),
             borderSide: BorderSide(
-              color: hasError
-                  ? Colors.redAccent
-                  : Colors.white.withOpacity(0.2),
+              color: hasError ? Colors.redAccent : Colors.white.withOpacity(0.2),
               width: 1.5,
             ),
           ),
@@ -705,13 +703,10 @@ class _EmergencyNumberScreenState extends State<EmergencyNumberScreen> {
             borderSide: const BorderSide(color: Colors.white, width: 2),
           ),
           hintText: hint,
-          hintStyle: TextStyle(
-              color: Colors.white.withOpacity(0.3), letterSpacing: 0),
+          hintStyle: TextStyle(color: Colors.white.withOpacity(0.3), letterSpacing: 0),
           labelText: label,
           labelStyle: TextStyle(
-            color: hasError
-                ? Colors.redAccent
-                : Colors.white.withOpacity(0.6),
+            color: hasError ? Colors.redAccent : Colors.white.withOpacity(0.6),
             fontWeight: FontWeight.w500,
           ),
           counterText: '',
@@ -719,8 +714,7 @@ class _EmergencyNumberScreenState extends State<EmergencyNumberScreen> {
           errorStyle: const TextStyle(color: Colors.redAccent),
           suffixIcon: _controllers[key]!.text.isNotEmpty
               ? IconButton(
-                  icon: Icon(Icons.clear,
-                      size: 20, color: Colors.white.withOpacity(0.5)),
+                  icon: Icon(Icons.clear, size: 20, color: Colors.white.withOpacity(0.5)),
                   onPressed: () {
                     setState(() {
                       _controllers[key]!.clear();

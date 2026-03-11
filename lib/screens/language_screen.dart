@@ -30,25 +30,21 @@ class _LanguageScreenState extends State<LanguageScreen> {
   Future<void> _saveLanguage(String language) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('language', language);
-    setState(() {
-      _selectedLanguage = language;
-    });
+    setState(() => _selectedLanguage = language);
     widget.updateLocale(language);
-    
+
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: const Text('Language updated'),
-        backgroundColor: Colors.green[700],
+        backgroundColor: Colors.white24,
         behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         duration: const Duration(seconds: 2),
       ),
     );
-    
+
     await Future.delayed(const Duration(milliseconds: 500));
-    if (mounted) {
-      Navigator.pop(context);
-    }
+    if (mounted) Navigator.pop(context);
   }
 
   @override
@@ -56,80 +52,77 @@ class _LanguageScreenState extends State<LanguageScreen> {
     final loc = AppLocalizations.of(context)!;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFE8EDF2),
-      appBar: AppBar(
-        leading: IconButton(
-          icon: Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: Colors.grey[100],
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: const Icon(Icons.arrow_back_ios_new, color: Color(0xFF1A1A1A), size: 18),
-          ),
-          onPressed: () => Navigator.pop(context),
-        ),
-        title: Text(
-          loc.language,
-          style: const TextStyle(
-            color: Color(0xFF1A1A1A),
-            fontWeight: FontWeight.w600,
-            fontSize: 20,
+      backgroundColor: const Color(0xFF6B0000),
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: RadialGradient(
+            center: Alignment(0, -0.3),
+            radius: 1.2,
+            colors: [
+              Color(0xFFB71C1C),
+              Color(0xFF7B0000),
+              Color(0xFF3A0000),
+            ],
+            stops: [0.0, 0.6, 1.0],
           ),
         ),
-        backgroundColor: Colors.white,
-        centerTitle: true,
-        elevation: 0,
-      ),
-      body: ListView(
-        padding: const EdgeInsets.all(20),
-        children: [
-          Text(
-            loc.selectLanguage,
-            style: TextStyle(
-              fontSize: 22,
-              fontWeight: FontWeight.w700,
-              color: Colors.grey[900],
-            ),
+        child: SafeArea(
+          child: Column(
+            children: [
+              // AppBar
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                child: Row(
+                  children: [
+                    GestureDetector(
+                      onTap: () => Navigator.pop(context),
+                      child: const Icon(Icons.arrow_back_ios_new, color: Colors.white70, size: 18),
+                    ),
+                    Expanded(
+                      child: Text(
+                        loc.language,
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w800,
+                          fontSize: 22,
+                          letterSpacing: 0.5,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 18),
+                  ],
+                ),
+              ),
+
+              // Content
+              Expanded(
+                child: ListView(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  children: [
+                    const SizedBox(height: 32),
+                    Container(
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.12),
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(color: Colors.white.withOpacity(0.2), width: 1),
+                      ),
+                      child: Column(
+                        children: [
+                          _buildLanguageItem(flag: '🇷🇺', language: loc.russian, code: 'ru', isFirst: true),
+                          _buildDivider(),
+                          _buildLanguageItem(flag: '🇬🇧', language: loc.english, code: 'en'),
+                          _buildDivider(),
+                          _buildLanguageItem(flag: '🇨🇳', language: loc.chinese, code: 'zh', isLast: true),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
-          const SizedBox(height: 24),
-          Container(
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.05),
-                  blurRadius: 20,
-                  offset: const Offset(0, 4),
-                ),
-              ],
-            ),
-            child: Column(
-              children: [
-                _buildLanguageItem(
-                  flag: '🇷🇺',
-                  language: loc.russian,
-                  code: 'ru',
-                  isFirst: true,
-                ),
-                _buildDivider(),
-                _buildLanguageItem(
-                  flag: '🇬🇧',
-                  language: loc.english,
-                  code: 'en',
-                ),
-                _buildDivider(),
-                _buildLanguageItem(
-                  flag: '🇨🇳',
-                  language: loc.chinese,
-                  code: 'zh',
-                  isLast: true,
-                ),
-              ],
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }
@@ -148,39 +141,38 @@ class _LanguageScreenState extends State<LanguageScreen> {
       child: InkWell(
         onTap: () => _saveLanguage(code),
         borderRadius: BorderRadius.vertical(
-          top: isFirst ? const Radius.circular(16) : Radius.zero,
-          bottom: isLast ? const Radius.circular(16) : Radius.zero,
+          top: isFirst ? const Radius.circular(20) : Radius.zero,
+          bottom: isLast ? const Radius.circular(20) : Radius.zero,
         ),
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
           child: Row(
             children: [
-              Text(
-                flag,
-                style: const TextStyle(fontSize: 28),
-              ),
+              Text(flag, style: const TextStyle(fontSize: 28)),
               const SizedBox(width: 16),
               Expanded(
                 child: Text(
                   language,
                   style: TextStyle(
                     fontSize: 16,
-                    fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-                    color: isSelected ? const Color(0xFFFF3B30) : const Color(0xFF1A1A1A),
+                    fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                    color: Colors.white,
                   ),
                 ),
               ),
               if (isSelected)
                 Container(
                   padding: const EdgeInsets.all(4),
-                  decoration: const BoxDecoration(
-                    color: Color(0xFFFF3B30),
+                  decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
+                  child: const Icon(Icons.check, color: Color(0xFFB71C1C), size: 16),
+                )
+              else
+                Container(
+                  width: 24,
+                  height: 24,
+                  decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                  ),
-                  child: const Icon(
-                    Icons.check,
-                    color: Colors.white,
-                    size: 16,
+                    border: Border.all(color: Colors.white.withOpacity(0.3), width: 1.5),
                   ),
                 ),
             ],
@@ -193,10 +185,7 @@ class _LanguageScreenState extends State<LanguageScreen> {
   Widget _buildDivider() {
     return Padding(
       padding: const EdgeInsets.only(left: 64),
-      child: Container(
-        height: 0.5,
-        color: Colors.grey[300],
-      ),
+      child: Container(height: 0.5, color: Colors.white.withOpacity(0.15)),
     );
   }
 }

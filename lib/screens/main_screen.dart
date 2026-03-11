@@ -3,10 +3,12 @@ import 'package:flutter/services.dart';
 import 'package:share_plus/share_plus.dart';
 import '../services/user_service.dart';
 import 'settings_screen.dart';
-import 'package:flutter/services.dart';
 import '../services/sos_service.dart';
 import 'dart:async';
+import 'dart:math' as math;
 import 'package:vibration/vibration.dart';
+import 'settings_screen.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class MainScreen extends StatefulWidget {
   final void Function(String) updateLocale;
@@ -25,8 +27,8 @@ class _MainScreenState extends State<MainScreen> {
   bool _isLongPressing = false;
   double _pressProgress = 0.0;
   Timer? _pressTimer;
+  List<String> _guardianNames = [];
 
-  // Inline dialog state (no Navigator push — avoids route observer interference)
   bool _showEditDialog = false;
   final _editController = TextEditingController();
 
@@ -46,11 +48,23 @@ class _MainScreenState extends State<MainScreen> {
   Future<void> _loadUserData() async {
     final userId = await UserService.getUserId();
     final userName = await UserService.getUserName();
-    setState(() {
-      _userId = userId;
-      _userName = userName ?? '';
-      _isLoading = false;
-    });
+    final prefs = await SharedPreferences.getInstance();
+
+    final names = <String>[];
+    for (int i = 1; i <= 5; i++) {
+      final nick = prefs.getString('guardian${i}_nickname') ?? '';
+      final id = prefs.getString('guardian$i') ?? '';
+      if (id.isNotEmpty) names.add(nick.isNotEmpty ? nick : id);
+    }
+
+    if (mounted) {
+      setState(() {
+        _userId = userId;
+        _userName = userName ?? '';
+        _guardianNames = names;
+        _isLoading = false;
+      });
+    }
   }
 
   void _openEditDialog() {
@@ -83,7 +97,8 @@ class _MainScreenState extends State<MainScreen> {
       SnackBar(
         content: const Text('ID copied to clipboard'),
         behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        backgroundColor: Colors.white24,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         duration: const Duration(seconds: 2),
       ),
     );
@@ -98,7 +113,6 @@ class _MainScreenState extends State<MainScreen> {
 
   void _onLongPressStart(LongPressStartDetails details) {
     if (_isSending) return;
-
     setState(() {
       _isLongPressing = true;
       _pressProgress = 0.0;
@@ -112,14 +126,11 @@ class _MainScreenState extends State<MainScreen> {
     _pressTimer = Timer.periodic(tickDuration, (timer) {
       currentTick++;
       final progress = currentTick / totalTicks;
-
       if (progress >= 1.0) {
         timer.cancel();
         _sendSOS();
       } else {
-        setState(() {
-          _pressProgress = progress;
-        });
+        setState(() => _pressProgress = progress);
       }
     });
   }
@@ -140,17 +151,15 @@ class _MainScreenState extends State<MainScreen> {
 
     try {
       final result = await SosService.sendSOS();
-
       if (mounted) {
         if (result['success'] == true) {
           Vibration.vibrate(duration: 500);
-
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text('SOS sent to ${result['recipients']} guardians'),
               backgroundColor: Colors.green[700],
               behavior: SnackBarBehavior.floating,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
               duration: const Duration(seconds: 3),
             ),
           );
@@ -158,9 +167,9 @@ class _MainScreenState extends State<MainScreen> {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text('Error: ${result['error']}'),
-              backgroundColor: Colors.red[700],
+              backgroundColor: Colors.red[900],
               behavior: SnackBarBehavior.floating,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
               duration: const Duration(seconds: 4),
             ),
           );
@@ -171,318 +180,199 @@ class _MainScreenState extends State<MainScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Error: $e'),
-            backgroundColor: Colors.red[700],
+            backgroundColor: Colors.red[900],
             behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
           ),
         );
       }
     } finally {
-      if (mounted) {
-        setState(() => _isSending = false);
-      }
+      if (mounted) setState(() => _isSending = false);
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFE8EDF2),
-      appBar: AppBar(
-        title: const Text(
-          'Emergency',
-          style: TextStyle(
-            color: Color(0xFF1A1A1A),
-            fontWeight: FontWeight.w600,
-            fontSize: 20,
+      backgroundColor: const Color(0xFF6B0000),
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: RadialGradient(
+            center: Alignment(0, -0.3),
+            radius: 1.2,
+            colors: [
+              Color(0xFFB71C1C),
+              Color(0xFF7B0000),
+              Color(0xFF3A0000),
+            ],
+            stops: [0.0, 0.6, 1.0],
           ),
         ),
-        backgroundColor: Colors.white,
-        elevation: 0,
-        centerTitle: true,
-        actions: [
-          IconButton(
-            icon: Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: Colors.grey[100],
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: const Icon(Icons.settings_outlined, color: Color(0xFF1A1A1A), size: 20),
-            ),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => SettingsScreen(
-                    updateLocale: widget.updateLocale,
-                  ),
-                ),
-              );
-            },
-          ),
-          const SizedBox(width: 8),
-        ],
-      ),
-      body: Stack(
-        children: [
-          // ── Main content ──────────────────────────────────────────────────
-          _isLoading
-              ? const Center(child: CircularProgressIndicator(color: Color(0xFFFF3B30)))
-              : Column(
-                  children: [
-                    // Scrollable top section keeps the card visible even with
-                    // long names without causing Column overflow.
-                    Expanded(
-                      child: SingleChildScrollView(
-                        child: Column(
-                          children: [
-                            const SizedBox(height: 24),
-
-                            // ID Card
-                            Container(
-                              key: const Key('my_id_card'),
-                              margin: const EdgeInsets.symmetric(horizontal: 20),
-                              padding: const EdgeInsets.all(24),
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(20),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black.withOpacity(0.05),
-                                    blurRadius: 20,
-                                    offset: const Offset(0, 4),
-                                  ),
-                                ],
-                              ),
-                              child: Column(
-                                children: [
-                                  Row(
-                                    children: [
-                                      Container(
-                                        padding: const EdgeInsets.all(10),
-                                        decoration: BoxDecoration(
-                                          color: const Color(0xFFFF3B30).withOpacity(0.1),
-                                          borderRadius: BorderRadius.circular(12),
-                                        ),
-                                        child: const Icon(
-                                          Icons.fingerprint,
-                                          color: Color(0xFFFF3B30),
-                                          size: 24,
-                                        ),
-                                      ),
-                                      const SizedBox(width: 12),
-                                      const Text(
-                                        'Your ID',
-                                        style: TextStyle(
-                                          fontSize: 15,
-                                          color: Color(0xFF8E8E93),
-                                          fontWeight: FontWeight.w500,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                  const SizedBox(height: 16),
-                                  // FR-17: show user name above ID (only if set)
-                                  if (_userName.isNotEmpty)
-                                    Text(
-                                      _userName,
-                                      key: const Key('user_name_display'),
-                                      style: const TextStyle(
-                                        fontSize: 18,
-                                        fontWeight: FontWeight.w600,
-                                        color: Color(0xFF1A1A1A),
-                                      ),
-                                    ),
-                                  Text(
-                                    _userId,
-                                    key: const Key('user_id_display'),
-                                    style: const TextStyle(
-                                      fontSize: 32,
-                                      fontWeight: FontWeight.w700,
-                                      letterSpacing: 4,
-                                      color: Color(0xFF1A1A1A),
-                                    ),
-                                  ),
-                                  const SizedBox(height: 12),
-                                  // FR-18: Edit Name button
-                                  SizedBox(
-                                    width: double.infinity,
-                                    child: TextButton(
-                                      key: const Key('edit_name_button'),
-                                      onPressed: _openEditDialog,
-                                      child: const Text('Edit Name'),
-                                    ),
-                                  ),
-                                  const SizedBox(height: 8),
-                                  Row(
-                                    children: [
-                                      Expanded(
-                                        child: _buildActionButton(
-                                          icon: Icons.content_copy,
-                                          label: 'Copy',
-                                          onTap: _copyToClipboard,
-                                        ),
-                                      ),
-                                      const SizedBox(width: 12),
-                                      Expanded(
-                                        child: _buildActionButton(
-                                          icon: Icons.ios_share,
-                                          label: 'Share',
-                                          onTap: _shareId,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ],
-                              ),
-                            ),
-
-                            const SizedBox(height: 24),
-                          ],
-                        ),
-                      ),
-                    ),
-
-                    // SOS Button — pinned to bottom outside the scroll view
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 20),
-                      child: Column(
-                        children: [
-                          GestureDetector(
-                            onLongPressStart: _onLongPressStart,
-                            onLongPressEnd: _onLongPressEnd,
-                            child: Container(
-                              width: double.infinity,
-                              height: 140,
-                              decoration: BoxDecoration(
-                                gradient: LinearGradient(
-                                  colors: _isSending
-                                      ? [Colors.grey[400]!, Colors.grey[500]!]
-                                      : _isLongPressing
-                                          ? [const Color(0xFFD32F2F), const Color(0xFFB71C1C)]
-                                          : [const Color(0xFFFF3B30), const Color(0xFFFF1744)],
-                                  begin: Alignment.topLeft,
-                                  end: Alignment.bottomRight,
+        child: Stack(
+          children: [
+            _isLoading
+                ? const Center(child: CircularProgressIndicator(color: Colors.white))
+                : SafeArea(
+                    child: Column(
+                      children: [
+                        // ── AppBar ─────────────────────────────────────────
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              const SizedBox(width: 22),
+                              const Text(
+                                'Guardians',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w800,
+                                  fontSize: 22,
+                                  letterSpacing: 0.5,
                                 ),
-                                borderRadius: BorderRadius.circular(70),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: _isSending
-                                        ? Colors.grey.withOpacity(0.3)
-                                        : const Color(0xFFFF3B30).withOpacity(0.4),
-                                    blurRadius: 30,
-                                    offset: const Offset(0, 10),
-                                  ),
-                                ],
                               ),
+                              GestureDetector(
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => SettingsScreen(
+                                        updateLocale: widget.updateLocale,
+                                      ),
+                                    ),
+                                  );
+                                },
+                                child: const Icon(
+                                  Icons.settings_outlined,
+                                  color: Colors.white70,
+                                  size: 22,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+
+                        // ── Shield ─────────────────────────────────────────
+                        Expanded(
+                          child: Center(
+                            child: SizedBox(
+                              width: 480,
+                              height: 620,
                               child: Stack(
                                 children: [
-                                  // Progress overlay
-                                  if (_isLongPressing)
-                                    Positioned.fill(
-                                      child: ClipRRect(
-                                        borderRadius: BorderRadius.circular(70),
-                                        child: LinearProgressIndicator(
-                                          value: _pressProgress,
-                                          backgroundColor: Colors.transparent,
-                                          valueColor: const AlwaysStoppedAnimation<Color>(
-                                            Color(0xFFB71C1C),
-                                          ),
-                                          minHeight: 140,
+                                  CustomPaint(
+                                    size: const Size(480, 620),
+                                    painter: _ShieldPainter(guardianNames: _guardianNames),
+                                  ),
+                                  // Tap-зона только в центре щита (крест)
+                                  Center(
+                                    child: GestureDetector(
+                                      behavior: HitTestBehavior.opaque,
+                                      onTap: () => Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) => const GuardiansScreen(),
                                         ),
                                       ),
+                                      child: const SizedBox(
+                                        width: 160,  // ширина зоны = armH * 2
+                                        height: 260, // высота зоны = armV * 2
+                                      ),
                                     ),
-                                  // Content
-                                  Center(
-                                    child: _isSending
-                                        ? const SizedBox(
-                                            width: 40,
-                                            height: 40,
-                                            child: CircularProgressIndicator(
-                                              color: Colors.white,
-                                              strokeWidth: 3,
-                                            ),
-                                          )
-                                        : const Text(
-                                            'SOS',
-                                            style: TextStyle(
-                                              color: Colors.white,
-                                              fontSize: 56,
-                                              fontWeight: FontWeight.w800,
-                                              letterSpacing: 4,
-                                            ),
-                                          ),
                                   ),
                                 ],
                               ),
                             ),
                           ),
-                          const SizedBox(height: 16),
-                          Text(
-                            _isSending
-                                ? 'Sending emergency alert...'
-                                : _isLongPressing
-                                    ? 'Keep holding...'
-                                    : 'Hold for 5 seconds to send SOS',
-                            style: TextStyle(
-                              fontSize: 15,
-                              color: Colors.grey[600],
-                              fontWeight: FontWeight.w500,
-                            ),
+                        ),
+
+                        // ── SOS Button ─────────────────────────────────────
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 24),
+                          child: Column(
+                            children: [
+                              Text(
+                                _isSending
+                                    ? 'Sending emergency alert...'
+                                    : _isLongPressing
+                                        ? 'Keep holding...'
+                                        : 'Hold for 5 seconds to send SOS',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: Colors.white.withOpacity(0.6),
+                                  fontWeight: FontWeight.w500,
+                                  letterSpacing: 0.3,
+                                ),
+                              ),
+                              const SizedBox(height: 16),
+                              GestureDetector(
+                                onLongPressStart: _onLongPressStart,
+                                onLongPressEnd: _onLongPressEnd,
+                                child: Container(
+                                  width: double.infinity,
+                                  height: 96,
+                                  decoration: BoxDecoration(
+                                    color: _isSending
+                                        ? Colors.white.withOpacity(0.08)
+                                        : Colors.white.withOpacity(0.15),
+                                    borderRadius: BorderRadius.circular(48),
+                                    border: Border.all(
+                                      color: Colors.white.withOpacity(0.3),
+                                      width: 1.5,
+                                    ),
+                                  ),
+                                  child: Stack(
+                                    children: [
+                                      if (_isLongPressing)
+                                        Positioned.fill(
+                                          child: ClipRRect(
+                                            borderRadius: BorderRadius.circular(48),
+                                            child: LinearProgressIndicator(
+                                              value: _pressProgress,
+                                              backgroundColor: Colors.transparent,
+                                              valueColor: AlwaysStoppedAnimation<Color>(
+                                                Colors.white.withOpacity(0.2),
+                                              ),
+                                              minHeight: 96,
+                                            ),
+                                          ),
+                                        ),
+                                      Center(
+                                        child: _isSending
+                                            ? const SizedBox(
+                                                width: 32,
+                                                height: 32,
+                                                child: CircularProgressIndicator(
+                                                  color: Colors.white,
+                                                  strokeWidth: 2.5,
+                                                ),
+                                              )
+                                            : const Text(
+                                                'SOS',
+                                                style: TextStyle(
+                                                  color: Colors.white,
+                                                  fontSize: 36,
+                                                  fontWeight: FontWeight.w900,
+                                                  letterSpacing: 8,
+                                                ),
+                                              ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
-                        ],
-                      ),
-                    ),
+                        ),
 
-                    const SizedBox(height: 40),
-                  ],
-                ),
+                        const SizedBox(height: 10),
 
-          // ── Inline Edit Name dialog (no Navigator push) ───────────────────
-          if (_showEditDialog)
-            const ModalBarrier(color: Colors.black54, dismissible: false),
-          if (_showEditDialog)
-            Center(
-              child: StatefulBuilder(
-                builder: (ctx, setDialogState) {
-                  final canConfirm = _editController.text.trim().isNotEmpty;
-                  return AlertDialog(
-                    key: const Key('edit_name_dialog'),
-                    title: const Text('Edit Name'),
-                    content: TextField(
-                      key: const Key('edit_name_field'),
-                      controller: _editController,
-                      maxLength: 50,
-                      onChanged: (_) => setDialogState(() {}),
-                      decoration: const InputDecoration(
-                        labelText: 'Your name',
-                        border: OutlineInputBorder(),
-                      ),
+                      ],
                     ),
-                    actions: [
-                      TextButton(
-                        key: const Key('edit_name_cancel_button'),
-                        onPressed: _closeEditDialog,
-                        child: const Text('Cancel'),
-                      ),
-                      ElevatedButton(
-                        key: const Key('edit_name_confirm_button'),
-                        onPressed: canConfirm
-                            ? () async {
-                                final name = _editController.text.trim();
-                                _closeEditDialog();
-                                await _saveName(name);
-                              }
-                            : null,
-                        child: const Text('Save'),
-                      ),
-                    ],
-                  );
-                },
-              ),
-            ),
-        ],
+                  ),
+
+          ],
+        ),
       ),
     );
   }
@@ -500,20 +390,20 @@ class _MainScreenState extends State<MainScreen> {
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 14),
           decoration: BoxDecoration(
-            color: Colors.grey[100],
+            color: Colors.white.withOpacity(0.15),
             borderRadius: BorderRadius.circular(12),
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(icon, size: 18, color: const Color(0xFF1A1A1A)),
+              Icon(icon, size: 18, color: Colors.white),
               const SizedBox(width: 8),
               Text(
                 label,
                 style: const TextStyle(
                   fontSize: 15,
                   fontWeight: FontWeight.w600,
-                  color: Color(0xFF1A1A1A),
+                  color: Colors.white,
                 ),
               ),
             ],
@@ -522,4 +412,164 @@ class _MainScreenState extends State<MainScreen> {
       ),
     );
   }
+}
+
+// ── Shield CustomPainter — концентрические белые линии ────────────────────────
+
+class _ShieldPainter extends CustomPainter {
+  final List<String> guardianNames;
+
+  const _ShieldPainter({this.guardianNames = const []});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final double scaleX = size.width / 320;
+    final double scaleY = size.height / 440;
+
+    canvas.save();
+    canvas.scale(scaleX, scaleY);
+
+    // ── Заливка (самый внешний контур) ──────────────────────────────────
+    final fillPath = Path()
+      ..moveTo(160, 20 + 14)
+      ..cubicTo(180, 34, 260 - 14 * 0.3, 50 + 14 * 0.5, 256, 79)
+      ..lineTo(256, 190)
+      ..cubicTo(256, 265 - 14 * 0.3, 230 - 14 * 0.5, 320 - 14 * 0.5, 160, 390 - 14 * 1.2)
+      ..cubicTo(90 + 14 * 0.5, 320 - 14 * 0.5, 64, 265 - 14 * 0.3, 64, 190)
+      ..lineTo(64, 79)
+      ..cubicTo(60 + 14 * 0.8, 57, 143, 34, 160, 34)
+      ..close();
+
+    final fillPaint = Paint()
+      ..color = Colors.white.withOpacity(0.12)
+      ..style = PaintingStyle.fill;
+
+    canvas.drawPath(fillPath, fillPaint);
+
+    // ── Граница заливки (тонкая белая рамка) ────────────────────────────
+    final borderPaint = Paint()
+      ..color = Colors.white.withOpacity(0.2)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.0;
+
+    canvas.drawPath(fillPath, borderPaint);
+
+    // ── Концентрические линии внутри ────────────────────────────────────
+    final lines = [
+      _ShieldLine(offset: 14, strokeWidth: 2.2, opacity: 0.80),
+      _ShieldLine(offset: 26, strokeWidth: 1.8, opacity: 0.60),
+      // _ShieldLine(offset: 37, strokeWidth: 1.4, opacity: 0.42),
+    ];
+
+    for (final line in lines) {
+      final o = line.offset.toDouble();
+      final paint = Paint()
+        ..color = Colors.white.withOpacity(line.opacity)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = line.strokeWidth
+        ..strokeCap = StrokeCap.round
+        ..strokeJoin = StrokeJoin.round;
+
+      final path = Path()
+        ..moveTo(160, 20 + o)
+        ..cubicTo(180, 20 + o, 260 - o * 0.3, 50 + o * 0.5, 270 - o, 65 + o)
+        ..lineTo(270 - o, 190)
+        ..cubicTo(270 - o, 265 - o * 0.3, 230 - o * 0.5, 320 - o * 0.5, 160, 390 - o * 1.2)
+        ..cubicTo(90 + o * 0.5, 320 - o * 0.5, 50 + o, 265 - o * 0.3, 50 + o, 190)
+        ..lineTo(50 + o, 65 + o)
+        ..cubicTo(60 + o * 0.8, 50 + o * 0.5, 140 + o * 0.3, 20 + o, 160, 20 + o)
+        ..close();
+
+      canvas.drawPath(path, paint);
+    }
+
+
+    if (guardianNames.isEmpty) {
+      // ── Крест ────────────────────────────────────
+      final crossPaint = Paint()
+        ..color = Colors.white.withOpacity(0.9)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 2
+        ..strokeCap = StrokeCap.round;
+
+      const cx = 160.0;  // центр X
+      const cy = 185.0;  // центр Y 
+      const armH = 70.0;  // ← длина горизонтального плеча
+      const armV = 120.0;  // ← длина вертикального плеча
+      // горизонталь
+      canvas.drawLine(
+        const Offset(cx - armH, cy),
+        const Offset(cx + armH, cy),
+        crossPaint,
+      );
+      // вертикаль
+      canvas.drawLine(
+        const Offset(cx, cy - armV),
+        const Offset(cx, cy + armV),
+        crossPaint,
+      );
+
+      // ── Текст в 4 секторах креста ────────────────────────────────────
+      const gap = 10.0;
+
+      final ts = TextStyle(
+        color: Colors.white.withOpacity(0.65),
+        fontSize: 14,
+        fontWeight: FontWeight.w600,
+        letterSpacing: 0.5,
+      );
+
+      final sectors = [
+        // [текст, x, y]
+        ['Tap',     cx - armH / 3.5,  cy - gap * 1.5],   // верх-лево, ближе к горизонтали
+        ['To',      cx + armH / 5,  cy - gap * 1.5],   // верх-право, ближе к горизонтали
+        ['Add',     cx - armH / 3.5,  cy + gap * 1.5],   // низ-лево, ближе к горизонтали
+        ['Name', cx + armH / 2,  cy + gap * 1.5],   // низ-право, ближе к горизонтали
+      ];
+
+      for (final s in sectors) {
+        final tp = TextPainter(
+          text: TextSpan(text: s[0] as String, style: ts),
+          textAlign: TextAlign.center,
+          textDirection: TextDirection.ltr,
+        )..layout(maxWidth: armH - gap);
+        tp.paint(canvas, Offset((s[1] as double) - tp.width / 2, (s[2] as double) - tp.height / 2));
+      }
+    } else {
+      // ── Список хранителей ──────────────────────────────────────────
+      const cx = 160.0;
+      const cy = 205.0;
+      const lineH = 28.0;
+      final total = guardianNames.length * lineH;
+      double startY = cy - total / 2;
+
+      for (final name in guardianNames) {
+        final ts = TextStyle(
+          color: Colors.white.withOpacity(0.9),
+          fontSize: 15,
+          fontWeight: FontWeight.w700,
+          letterSpacing: 0.3,
+        );
+        final tp = TextPainter(
+          text: TextSpan(text: name, style: ts),
+          textAlign: TextAlign.center,
+          textDirection: TextDirection.ltr,
+        )..layout(maxWidth: 180);
+        tp.paint(canvas, Offset(cx - tp.width / 2, startY));
+        startY += lineH;
+      }
+    }
+
+    canvas.restore();
+  }
+
+  @override
+  bool shouldRepaint(_ShieldPainter old) => old.guardianNames != guardianNames;
+}
+
+class _ShieldLine {
+  final int offset;
+  final double strokeWidth;
+  final double opacity;
+  const _ShieldLine({required this.offset, required this.strokeWidth, required this.opacity});
 }
