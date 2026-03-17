@@ -116,16 +116,7 @@ class _GuardiansScreenState extends State<GuardiansScreen> {
     }
     if (mounted) {
       setState(() {});
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text('Saved'),
-          backgroundColor: Colors.white24,
-          behavior: SnackBarBehavior.floating,
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          duration: const Duration(seconds: 2),
-        ),
-      );
+      Navigator.pop(context);
     }
   }
 
