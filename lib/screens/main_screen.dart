@@ -242,7 +242,7 @@ class _MainScreenState extends State<MainScreen> {
                                         updateLocale: widget.updateLocale,
                                       ),
                                     ),
-                                  );
+                                  ).then((_) => _loadUserData());
                                 },
                                 child: const Icon(
                                   Icons.settings_outlined,
@@ -275,7 +275,7 @@ class _MainScreenState extends State<MainScreen> {
                                         MaterialPageRoute(
                                           builder: (context) => const GuardiansScreen(),
                                         ),
-                                      ),
+                                      ).then((_) => _loadUserData()),
                                       child: const SizedBox(
                                         width: 160,  // ширина зоны = armH * 2
                                         height: 260, // высота зоны = armV * 2
@@ -515,17 +515,17 @@ class _ShieldPainter extends CustomPainter {
 
       final ts = TextStyle(
         color: Colors.white.withOpacity(0.65),
-        fontSize: 14,
+        fontSize: 10,
         fontWeight: FontWeight.w600,
         letterSpacing: 0.5,
       );
 
       final sectors = [
         // [текст, x, y]
-        ['Tap',     cx - armH / 3.5,  cy - gap * 1.5],   // верх-лево, ближе к горизонтали
-        ['To',      cx + armH / 5,  cy - gap * 1.5],   // верх-право, ближе к горизонтали
-        ['Add',     cx - armH / 3.5,  cy + gap * 1.5],   // низ-лево, ближе к горизонтали
-        ['Name', cx + armH / 2,  cy + gap * 1.5],   // низ-право, ближе к горизонтали
+        ['Tap',     cx - armH / 5,  cy - gap * 1],   
+        ['To',      cx + armH / 6.5,  cy - gap * 1],   
+        ['Add',     cx - armH / 5,  cy + gap * 1],  
+        ['Name', cx + armH / 3.2,  cy + gap * 1],  
       ];
 
       for (final s in sectors) {
@@ -537,27 +537,86 @@ class _ShieldPainter extends CustomPainter {
         tp.paint(canvas, Offset((s[1] as double) - tp.width / 2, (s[2] as double) - tp.height / 2));
       }
     } else {
-      // ── Список хранителей ──────────────────────────────────────────
       const cx = 160.0;
-      const cy = 205.0;
       const lineH = 28.0;
-      final total = guardianNames.length * lineH;
-      double startY = cy - total / 2;
+      const crossArmH = 50.0;
+      const crossArmV = 70.0;
+      const gapBetween = 20.0; // отступ между именами и крестом
 
-      for (final name in guardianNames) {
-        final ts = TextStyle(
-          color: Colors.white.withOpacity(0.9),
-          fontSize: 15,
-          fontWeight: FontWeight.w700,
-          letterSpacing: 0.3,
-        );
+      // Общая высота: имена + отступ + крест
+      final namesHeight = guardianNames.length * lineH;
+      final crossHeight = crossArmV * 2;
+      final totalHeight = namesHeight + gapBetween + crossHeight;
+
+      // Центрируем всё в зоне щита (y: 60..360)
+      const shieldTop = 60.0;
+      const shieldBottom = 360.0;
+      final startY = shieldTop + (shieldBottom - shieldTop - totalHeight) / 2;
+
+      // ── Имена ──────────────────────────────────────
+      for (int i = 0; i < guardianNames.length; i++) {
         final tp = TextPainter(
-          text: TextSpan(text: name, style: ts),
+          text: TextSpan(
+            text: guardianNames[i],
+            style: TextStyle(
+              color: Colors.white.withOpacity(0.9),
+              fontSize: 15,
+              fontWeight: FontWeight.w700,
+              letterSpacing: 0.3,
+            ),
+          ),
           textAlign: TextAlign.center,
           textDirection: TextDirection.ltr,
         )..layout(maxWidth: 180);
-        tp.paint(canvas, Offset(cx - tp.width / 2, startY));
-        startY += lineH;
+        tp.paint(canvas, Offset(cx - tp.width / 2, startY + i * lineH));
+      }
+
+      // ── Крест ──────────────────────────────────────
+      final crossCy = startY + namesHeight + gapBetween + crossArmV;
+
+      final crossPaint = Paint()
+        ..color = Colors.white.withOpacity(0.9)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 2
+        ..strokeCap = StrokeCap.round;
+
+      canvas.drawLine(
+        Offset(cx - crossArmH, crossCy),
+        Offset(cx + crossArmH, crossCy),
+        crossPaint,
+      );
+      canvas.drawLine(
+        Offset(cx, crossCy - crossArmV),
+        Offset(cx, crossCy + crossArmV),
+        crossPaint,
+      );
+
+      // ── Текст на кресте ────────────────────────────
+      const gap = 5.0;
+      final ts = TextStyle(
+        color: Colors.white.withOpacity(0.65),
+        fontSize: 10,
+        fontWeight: FontWeight.w600,
+        letterSpacing: 0.5,
+      );
+
+      final sectors = [
+        ['Tap',  cx - crossArmH / 3.8, crossCy - gap * 1.3],
+        ['To',   cx + crossArmH / 6,   crossCy - gap * 1.3],
+        ['Add',  cx - crossArmH / 3.8, crossCy + gap * 1.3],
+        ['Name', cx + crossArmH / 2.8,   crossCy + gap * 1.3],
+      ];
+
+      for (final s in sectors) {
+        final tp = TextPainter(
+          text: TextSpan(text: s[0] as String, style: ts),
+          textAlign: TextAlign.center,
+          textDirection: TextDirection.ltr,
+        )..layout(maxWidth: crossArmH - gap);
+        tp.paint(canvas, Offset(
+          (s[1] as double) - tp.width / 2,
+          (s[2] as double) - tp.height / 2,
+        ));
       }
     }
 
