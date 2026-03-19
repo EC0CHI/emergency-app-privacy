@@ -602,9 +602,9 @@ class _ShieldPainter extends CustomPainter {
 
       final sectors = [
         ['Tap',  cx - crossArmH / 3.8, crossCy - gap * 1.3],
-        ['To',   cx + crossArmH / 6,   crossCy - gap * 1.3],
+        ['To',   cx + crossArmH / 5.8,   crossCy - gap * 1.3],
         ['Add',  cx - crossArmH / 3.8, crossCy + gap * 1.3],
-        ['Name', cx + crossArmH / 2.8,   crossCy + gap * 1.3],
+        ['Name', cx + crossArmH / 2.7,   crossCy + gap * 1.3],
       ];
 
       for (final s in sectors) {
