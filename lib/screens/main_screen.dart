@@ -486,29 +486,13 @@ class _ShieldPainter extends CustomPainter {
 
 
     if (guardianNames.isEmpty) {
-      // ── Крест ────────────────────────────────────
-      final crossPaint = Paint()
-        ..color = Colors.white.withOpacity(0.9)
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 2
-        ..strokeCap = StrokeCap.round;
-
+      // // ── Крест ────────────────────────────────────
       const cx = 160.0;  // центр X
       const cy = 185.0;  // центр Y 
       const armH = 70.0;  // ← длина горизонтального плеча
       const armV = 120.0;  // ← длина вертикального плеча
-      // горизонталь
-      canvas.drawLine(
-        const Offset(cx - armH, cy),
-        const Offset(cx + armH, cy),
-        crossPaint,
-      );
-      // вертикаль
-      canvas.drawLine(
-        const Offset(cx, cy - armV),
-        const Offset(cx, cy + armV),
-        crossPaint,
-      );
+
+      _drawCross(canvas, cx, cy, armH, armV);
 
       // ── Текст в 4 секторах креста ────────────────────────────────────
       const gap = 10.0;
@@ -574,22 +558,7 @@ class _ShieldPainter extends CustomPainter {
       // ── Крест ──────────────────────────────────────
       final crossCy = startY + namesHeight + gapBetween + crossArmV;
 
-      final crossPaint = Paint()
-        ..color = Colors.white.withOpacity(0.9)
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 2
-        ..strokeCap = StrokeCap.round;
-
-      canvas.drawLine(
-        Offset(cx - crossArmH, crossCy),
-        Offset(cx + crossArmH, crossCy),
-        crossPaint,
-      );
-      canvas.drawLine(
-        Offset(cx, crossCy - crossArmV),
-        Offset(cx, crossCy + crossArmV),
-        crossPaint,
-      );
+      _drawCross(canvas, cx, crossCy, crossArmH, crossArmV);
 
       // ── Текст на кресте ────────────────────────────
       const gap = 5.0;
@@ -621,6 +590,29 @@ class _ShieldPainter extends CustomPainter {
     }
 
     canvas.restore();
+  }
+
+  void _drawCross(Canvas canvas, double cx, double cy, double armH, double armV) {
+    // Glow
+    final glowPaint = Paint()
+      ..color = Colors.white.withOpacity(0.15)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 12
+      ..strokeCap = StrokeCap.round
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 8);
+
+    canvas.drawLine(Offset(cx - armH, cy), Offset(cx + armH, cy), glowPaint);
+    canvas.drawLine(Offset(cx, cy - armV), Offset(cx, cy + armV), glowPaint);
+
+    // Cross
+    final crossPaint = Paint()
+      ..color = Colors.white.withOpacity(0.9)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 3
+      ..strokeCap = StrokeCap.round;
+
+    canvas.drawLine(Offset(cx - armH, cy), Offset(cx + armH, cy), crossPaint);
+    canvas.drawLine(Offset(cx, cy - armV), Offset(cx, cy + armV), crossPaint);
   }
 
   @override
