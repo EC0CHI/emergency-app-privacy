@@ -71,7 +71,8 @@ class _MyAppState extends State<MyApp> {
   /// что позволяет тестировать MyApp без инициализации внешних сервисов.
   Future<void> _init() async {
     final prefs = await SharedPreferences.getInstance();
-    final languageCode = prefs.getString('language') ?? 'ru';
+    final saved = prefs.getString('language');
+    final languageCode = saved ?? WidgetsBinding.instance.platformDispatcher.locale.languageCode;
     final hasName = await UserService.hasUserName();
     if (mounted) {
       setState(() {
@@ -116,8 +117,8 @@ class _MyAppState extends State<MyApp> {
       ),
       locale: _locale,
       supportedLocales: const [
-        Locale('ru'),
         Locale('en'),
+        Locale('ru'),
         Locale('zh'),
         Locale('es'),  
         Locale('ar'),  
