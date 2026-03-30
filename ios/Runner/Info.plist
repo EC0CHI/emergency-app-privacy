@@ -26,12 +26,6 @@
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
-	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
-	<string>Приложение требует доступ к геолокации для подгрузки номеров экстренных служб.</string>
-	<key>NSLocationAlwaysUsageDescription</key>
-	<string>Приложение требует доступ к геолокации для подгрузки номеров экстренных служб.</string>
-	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>Приложение требует доступ к геолокации для подгрузки номеров экстренных служб.</string>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
 	<key>UILaunchStoryboardName</key>

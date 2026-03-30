@@ -14,7 +14,6 @@ dependencies:
   intl: ^0.19.0
   url_launcher: ^6.3.1
   shared_preferences: ^2.5.2
-  geolocator: ^10.1.1
   vibration: ^2.0.0
   cupertino_icons: ^1.0.8
   share_plus: ^10.1.3
