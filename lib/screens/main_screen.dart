@@ -224,15 +224,15 @@ class _MainScreenState extends State<MainScreen> {
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               const SizedBox(width: 22),
-                              const Text(
-                                'Guardians',
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.w800,
-                                  fontSize: 22,
-                                  letterSpacing: 0.5,
-                                ),
-                              ),
+                              // const Text(
+                              //   'Guardians',
+                              //   style: TextStyle(
+                              //     color: Colors.white,
+                              //     fontWeight: FontWeight.w800,
+                              //     fontSize: 22,
+                              //     letterSpacing: 0.5,
+                              //   ),
+                              // ),
                               GestureDetector(
                                 onTap: () {
                                   Navigator.push(
@@ -537,6 +537,22 @@ class _ShieldPainter extends CustomPainter {
       canvas.drawPath(path, paint);
     }
 
+    // ── Заголовок "Guardians" на щите ──
+    final titleStyle = TextStyle(
+      color: Colors.white.withOpacity(0.9),
+      fontSize: 20,
+      fontWeight: FontWeight.w800,
+      letterSpacing: 0.5,
+    );
+    final titlePainter = TextPainter(
+      text: TextSpan(text: 'Guardians', style: titleStyle),
+      textAlign: TextAlign.center,
+      textDirection: TextDirection.ltr,
+    )..layout(maxWidth: 200);
+    titlePainter.paint(
+      canvas,
+      Offset(160 - titlePainter.width / 2, 100),
+    );
 
     if (guardianNames.isNotEmpty) {
       const cx = 160.0;
