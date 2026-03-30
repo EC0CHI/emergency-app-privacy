@@ -538,21 +538,23 @@ class _ShieldPainter extends CustomPainter {
     }
 
     // ── Заголовок "Guardians" на щите ──
-    final titleStyle = TextStyle(
-      color: Colors.white.withOpacity(0.9),
-      fontSize: 20,
-      fontWeight: FontWeight.w800,
-      letterSpacing: 0.5,
-    );
-    final titlePainter = TextPainter(
-      text: TextSpan(text: 'Guardians', style: titleStyle),
-      textAlign: TextAlign.center,
-      textDirection: TextDirection.ltr,
-    )..layout(maxWidth: 200);
-    titlePainter.paint(
-      canvas,
-      Offset(160 - titlePainter.width / 2, 100),
-    );
+    if (guardianNames.isEmpty) {
+      final titleStyle = TextStyle(
+        color: Colors.white.withOpacity(0.9),
+        fontSize: 20,
+        fontWeight: FontWeight.w800,
+        letterSpacing: 0.5,
+      );
+      final titlePainter = TextPainter(
+        text: TextSpan(text: 'Guardians', style: titleStyle),
+        textAlign: TextAlign.center,
+        textDirection: TextDirection.ltr,
+      )..layout(maxWidth: 200);
+      titlePainter.paint(
+        canvas,
+        Offset(160 - titlePainter.width / 2, 100),
+      );
+    }
 
     if (guardianNames.isNotEmpty) {
       const cx = 160.0;
@@ -562,7 +564,7 @@ class _ShieldPainter extends CustomPainter {
 
       const shieldTop = 60.0;
       const shieldBottom = 360.0;
-      final startY = shieldTop + (shieldBottom - shieldTop - namesHeight) / 2 - 40;
+      final startY = shieldTop + 30;
 
       for (int i = 0; i < guardianNames.length; i++) {
         final tp = TextPainter(
