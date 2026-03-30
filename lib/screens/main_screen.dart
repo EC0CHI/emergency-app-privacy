@@ -1,13 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:share_plus/share_plus.dart';
 import '../services/user_service.dart';
 import 'settings_screen.dart';
 import '../services/sos_service.dart';
 import 'dart:async';
-import 'dart:math' as math;
 import 'package:vibration/vibration.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
@@ -21,17 +17,11 @@ class MainScreen extends StatefulWidget {
 }
 
 class _MainScreenState extends State<MainScreen> {
-  String _userId = '';
-  String _userName = '';
   bool _isLoading = true;
   bool _isSending = false;
   bool _isLongPressing = false;
   double _pressProgress = 0.0;
   Timer? _pressTimer;
-  List<String> _guardianNames = [];
-
-  bool _showEditDialog = false;
-  final _editController = TextEditingController();
 
   @override
   void initState() {
@@ -42,74 +32,16 @@ class _MainScreenState extends State<MainScreen> {
   @override
   void dispose() {
     _pressTimer?.cancel();
-    _editController.dispose();
     super.dispose();
   }
 
   Future<void> _loadUserData() async {
-    final userId = await UserService.getUserId();
-    final userName = await UserService.getUserName();
-    final prefs = await SharedPreferences.getInstance();
-
-    final names = <String>[];
-    for (int i = 1; i <= 5; i++) {
-      final nick = prefs.getString('guardian${i}_nickname') ?? '';
-      final id = prefs.getString('guardian$i') ?? '';
-      if (id.isNotEmpty) names.add(nick.isNotEmpty ? nick : id);
-    }
 
     if (mounted) {
       setState(() {
-        _userId = userId;
-        _userName = userName ?? '';
-        _guardianNames = names;
         _isLoading = false;
       });
     }
-  }
-
-  void _openEditDialog() {
-    _editController.text = _userName;
-    setState(() => _showEditDialog = true);
-  }
-
-  void _closeEditDialog() {
-    setState(() => _showEditDialog = false);
-  }
-
-  Future<void> _saveName(String name) async {
-    try {
-      await UserService.saveUserName(name);
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Saved locally. Sync error: $e')),
-        );
-      }
-    }
-    if (mounted) {
-      setState(() => _userName = name);
-    }
-  }
-
-  void _copyToClipboard() {
-    Clipboard.setData(ClipboardData(text: _userId));
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: const Text('ID copied to clipboard'),
-        behavior: SnackBarBehavior.floating,
-        backgroundColor: Colors.white24,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        duration: const Duration(seconds: 2),
-      ),
-    );
-  }
-
-  void _shareId() {
-    Share.share(
-      'Add me as guardian in Emergency App: $_userId',
-      subject: 'My Emergency ID',
-    );
   }
 
   void _onLongPressStart(LongPressStartDetails details) {
@@ -224,15 +156,6 @@ class _MainScreenState extends State<MainScreen> {
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               const SizedBox(width: 22),
-                              // const Text(
-                              //   'Guardians',
-                              //   style: TextStyle(
-                              //     color: Colors.white,
-                              //     fontWeight: FontWeight.w800,
-                              //     fontSize: 22,
-                              //     letterSpacing: 0.5,
-                              //   ),
-                              // ),
                               GestureDetector(
                                 onTap: () {
                                   Navigator.push(
@@ -255,40 +178,6 @@ class _MainScreenState extends State<MainScreen> {
                         ),
 
                         // ── Shield ─────────────────────────────────────────
-                        // Expanded(
-                        //   child: Center(
-                        //     child: SizedBox(
-                        //       width: 480,
-                        //       height: 620,
-                        //       child: Stack(
-                        //         children: [
-                        //           CustomPaint(
-                        //             size: const Size(480, 620),
-                        //             painter: _ShieldPainter(guardianNames: _guardianNames),
-                        //           ),
-                        //           // Tap-зона только в центре щита (крест)
-                        //           Center(
-                        //             child: GestureDetector(
-                        //               behavior: HitTestBehavior.opaque,
-                        //               onTap: () => Navigator.push(
-                        //                 context,
-                        //                 MaterialPageRoute(
-                        //                   builder: (context) => const GuardiansScreen(),
-                        //                 ),
-                        //               ).then((_) => _loadUserData()),
-                        //               child: const SizedBox(
-                        //                 width: 160,  // ширина зоны = armH * 2
-                        //                 height: 260, // высота зоны = armV * 2
-                        //               ),
-                        //             ),
-                        //           ),
-                        //         ],
-                        //       ),
-                        //     ),
-                        //   ),
-                        // ),
-
-                        // ── Shield ─────────────────────────────────────────
                         Expanded(
                           child: Center(
                             child: SizedBox(
@@ -298,23 +187,18 @@ class _MainScreenState extends State<MainScreen> {
                                 children: [
                                   CustomPaint(
                                     size: const Size(480, 620),
-                                    painter: _ShieldPainter(guardianNames: _guardianNames),
+                                    painter: const _ShieldPainter(),
                                   ),
                                   // ── Скрещенные алебарды вместо креста ──
                                   Positioned.fill(
                                     child: Center(
-                                      child: Padding(
-                                        padding: EdgeInsets.only(
-                                          top: _guardianNames.isEmpty ? 0 : _guardianNames.length * 42.0,
-                                        ),
-                                        child: SvgPicture.asset(
-                                          'assets/images/Vectorizer-io-halberd.svg',
-                                          width: _guardianNames.isEmpty ? 180 : 130,
-                                          height: _guardianNames.isEmpty ? 180 : 130,
-                                          colorFilter: ColorFilter.mode(
-                                            Colors.white.withOpacity(0.85),
-                                            BlendMode.srcIn,
-                                          ),
+                                      child: SvgPicture.asset(
+                                        'assets/images/Vectorizer-io-halberd.svg',
+                                        width: 200,
+                                        height: 200,
+                                        colorFilter: ColorFilter.mode(
+                                          Colors.white.withOpacity(0.85),
+                                          BlendMode.srcIn,
                                         ),
                                       ),
                                     ),
@@ -430,50 +314,13 @@ class _MainScreenState extends State<MainScreen> {
       ),
     );
   }
-
-  Widget _buildActionButton({
-    required IconData icon,
-    required String label,
-    required VoidCallback onTap,
-  }) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
-        child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 14),
-          decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.15),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(icon, size: 18, color: Colors.white),
-              const SizedBox(width: 8),
-              Text(
-                label,
-                style: const TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.white,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
 }
 
 // ── Shield CustomPainter — концентрические белые линии ────────────────────────
 
 class _ShieldPainter extends CustomPainter {
-  final List<String> guardianNames;
 
-  const _ShieldPainter({this.guardianNames = const []});
+  const _ShieldPainter();
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -538,114 +385,27 @@ class _ShieldPainter extends CustomPainter {
     }
 
     // ── Заголовок "Guardians" на щите ──
-    if (guardianNames.isEmpty) {
-      final titleStyle = TextStyle(
-        color: Colors.white.withOpacity(0.9),
-        fontSize: 20,
-        fontWeight: FontWeight.w800,
-        letterSpacing: 0.5,
-      );
-      final titlePainter = TextPainter(
-        text: TextSpan(text: 'Guardians', style: titleStyle),
-        textAlign: TextAlign.center,
-        textDirection: TextDirection.ltr,
-      )..layout(maxWidth: 200);
-      titlePainter.paint(
-        canvas,
-        Offset(160 - titlePainter.width / 2, 100),
-      );
-    }
-
-    if (guardianNames.isNotEmpty) {
-      const cx = 160.0;
-      const lineH = 28.0;
-
-      final namesHeight = guardianNames.length * lineH;
-
-      const shieldTop = 60.0;
-      const shieldBottom = 360.0;
-      final startY = shieldTop + 30;
-
-      for (int i = 0; i < guardianNames.length; i++) {
-        final tp = TextPainter(
-          text: TextSpan(
-            text: guardianNames[i],
-            style: TextStyle(
-              color: Colors.white.withOpacity(0.9),
-              fontSize: 15,
-              fontWeight: FontWeight.w700,
-              letterSpacing: 0.3,
-            ),
-          ),
-          textAlign: TextAlign.center,
-          textDirection: TextDirection.ltr,
-        )..layout(maxWidth: 180);
-        tp.paint(canvas, Offset(cx - tp.width / 2, startY + i * lineH));
-      }
-    }
-
-      // // ── Крест ──────────────────────────────────────
-      // final crossCy = startY + namesHeight + gapBetween + crossArmV;
-
-      // // _drawCross(canvas, cx, crossCy, crossArmH, crossArmV);
-
-      // // ── Текст на кресте ────────────────────────────
-      // const gap = 5.0;
-      // final ts = TextStyle(
-      //   color: Colors.white.withOpacity(0.65),
-      //   fontSize: 10,
-      //   fontWeight: FontWeight.w600,
-      //   letterSpacing: 0.5,
-      // );
-
-      // final sectors = [
-      //   ['Tap',  cx - crossArmH / 3.8, crossCy - gap * 1.3],
-      //   ['To',   cx + crossArmH / 5.8,   crossCy - gap * 1.3],
-      //   ['Add',  cx - crossArmH / 3.8, crossCy + gap * 1.3],
-      //   ['Name', cx + crossArmH / 2.7,   crossCy + gap * 1.3],
-      // ];
-
-      // for (final s in sectors) {
-      //   final tp = TextPainter(
-      //     text: TextSpan(text: s[0] as String, style: ts),
-      //     textAlign: TextAlign.center,
-      //     textDirection: TextDirection.ltr,
-      //   )..layout(maxWidth: crossArmH - gap);
-      //   tp.paint(canvas, Offset(
-      //     (s[1] as double) - tp.width / 2,
-      //     (s[2] as double) - tp.height / 2,
-      //   ));
-      // }
-    // }
+    final titleStyle = TextStyle(
+      color: Colors.white.withOpacity(0.9),
+      fontSize: 20,
+      fontWeight: FontWeight.w800,
+      letterSpacing: 0.5,
+    );
+    final titlePainter = TextPainter(
+      text: TextSpan(text: 'Guardians', style: titleStyle),
+      textAlign: TextAlign.center,
+      textDirection: TextDirection.ltr,
+    )..layout(maxWidth: 200);
+    titlePainter.paint(
+      canvas,
+      Offset(160 - titlePainter.width / 2, 100),
+    );
 
     canvas.restore();
   }
 
-  // void _drawCross(Canvas canvas, double cx, double cy, double armH, double armV) {
-  //   // Glow
-  //   final glowPaint = Paint()
-  //     ..color = Colors.white.withOpacity(0.15)
-  //     ..style = PaintingStyle.stroke
-  //     ..strokeWidth = 12
-  //     ..strokeCap = StrokeCap.round
-  //     ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 8);
-
-  //   canvas.drawLine(Offset(cx - armH, cy), Offset(cx + armH, cy), glowPaint);
-  //   canvas.drawLine(Offset(cx, cy - armV), Offset(cx, cy + armV), glowPaint);
-
-  //   // Cross
-  //   final crossPaint = Paint()
-  //     ..color = Colors.white.withOpacity(0.9)
-  //     ..style = PaintingStyle.stroke
-  //     ..strokeWidth = 3
-  //     ..strokeCap = StrokeCap.round;
-
-  //   canvas.drawLine(Offset(cx - armH, cy), Offset(cx + armH, cy), crossPaint);
-  //   canvas.drawLine(Offset(cx, cy - armV), Offset(cx, cy + armV), crossPaint);
-  // }
-
   @override
-  bool shouldRepaint(_ShieldPainter old) => old.guardianNames != guardianNames;
+  bool shouldRepaint(_ShieldPainter old) => false;
 }
 
 class _ShieldLine {
