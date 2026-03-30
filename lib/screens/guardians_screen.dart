@@ -245,7 +245,7 @@ class _GuardiansScreenState extends State<GuardiansScreen> {
                             color: Colors.white,
                             fontSize: 20,
                             fontWeight: FontWeight.w800,
-                            letterSpacing: 6,
+                            letterSpacing: 0.5,
                           ),
                         ),
                       ),

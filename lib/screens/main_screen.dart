@@ -192,13 +192,16 @@ class _MainScreenState extends State<MainScreen> {
                                   // ── Скрещенные алебарды вместо креста ──
                                   Positioned.fill(
                                     child: Center(
-                                      child: SvgPicture.asset(
-                                        'assets/images/Vectorizer-io-halberd.svg',
-                                        width: 200,
-                                        height: 200,
-                                        colorFilter: ColorFilter.mode(
-                                          Colors.white.withOpacity(0.85),
-                                          BlendMode.srcIn,
+                                      child: Padding(
+                                        padding: const EdgeInsets.only(bottom: 30),
+                                        child: SvgPicture.asset(
+                                          'assets/images/Vectorizer-io-halberd.svg',
+                                          width: 200,
+                                          height: 200,
+                                          colorFilter: ColorFilter.mode(
+                                            Colors.white.withOpacity(0.85),
+                                            BlendMode.srcIn,
+                                          ),
                                         ),
                                       ),
                                     ),
@@ -398,7 +401,7 @@ class _ShieldPainter extends CustomPainter {
     )..layout(maxWidth: 200);
     titlePainter.paint(
       canvas,
-      Offset(160 - titlePainter.width / 2, 100),
+      Offset(160 - titlePainter.width / 2, 90),
     );
 
     canvas.restore();
