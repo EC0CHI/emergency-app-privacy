@@ -7,9 +7,9 @@ import '../services/sos_service.dart';
 import 'dart:async';
 import 'dart:math' as math;
 import 'package:vibration/vibration.dart';
-import 'settings_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 class MainScreen extends StatefulWidget {
   final void Function(String) updateLocale;
@@ -255,6 +255,40 @@ class _MainScreenState extends State<MainScreen> {
                         ),
 
                         // ── Shield ─────────────────────────────────────────
+                        // Expanded(
+                        //   child: Center(
+                        //     child: SizedBox(
+                        //       width: 480,
+                        //       height: 620,
+                        //       child: Stack(
+                        //         children: [
+                        //           CustomPaint(
+                        //             size: const Size(480, 620),
+                        //             painter: _ShieldPainter(guardianNames: _guardianNames),
+                        //           ),
+                        //           // Tap-зона только в центре щита (крест)
+                        //           Center(
+                        //             child: GestureDetector(
+                        //               behavior: HitTestBehavior.opaque,
+                        //               onTap: () => Navigator.push(
+                        //                 context,
+                        //                 MaterialPageRoute(
+                        //                   builder: (context) => const GuardiansScreen(),
+                        //                 ),
+                        //               ).then((_) => _loadUserData()),
+                        //               child: const SizedBox(
+                        //                 width: 160,  // ширина зоны = armH * 2
+                        //                 height: 260, // высота зоны = armV * 2
+                        //               ),
+                        //             ),
+                        //           ),
+                        //         ],
+                        //       ),
+                        //     ),
+                        //   ),
+                        // ),
+
+                        // ── Shield ─────────────────────────────────────────
                         Expanded(
                           child: Center(
                             child: SizedBox(
@@ -266,7 +300,26 @@ class _MainScreenState extends State<MainScreen> {
                                     size: const Size(480, 620),
                                     painter: _ShieldPainter(guardianNames: _guardianNames),
                                   ),
-                                  // Tap-зона только в центре щита (крест)
+                                  // ── Скрещенные алебарды вместо креста ──
+                                  Positioned.fill(
+                                    child: Center(
+                                      child: Padding(
+                                        padding: EdgeInsets.only(
+                                          top: _guardianNames.isEmpty ? 0 : _guardianNames.length * 42.0,
+                                        ),
+                                        child: SvgPicture.asset(
+                                          'assets/images/Vectorizer-io-halberd.svg',
+                                          width: _guardianNames.isEmpty ? 180 : 130,
+                                          height: _guardianNames.isEmpty ? 180 : 130,
+                                          colorFilter: ColorFilter.mode(
+                                            Colors.white.withOpacity(0.85),
+                                            BlendMode.srcIn,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  // ── Tap-зона ──
                                   Center(
                                     child: GestureDetector(
                                       behavior: HitTestBehavior.opaque,
@@ -277,8 +330,8 @@ class _MainScreenState extends State<MainScreen> {
                                         ),
                                       ).then((_) => _loadUserData()),
                                       child: const SizedBox(
-                                        width: 160,  // ширина зоны = armH * 2
-                                        height: 260, // высота зоны = armV * 2
+                                        width: 180,
+                                        height: 280,
                                       ),
                                     ),
                                   ),
@@ -485,59 +538,16 @@ class _ShieldPainter extends CustomPainter {
     }
 
 
-    if (guardianNames.isEmpty) {
-      // // ── Крест ────────────────────────────────────
-      const cx = 160.0;  // центр X
-      const cy = 185.0;  // центр Y 
-      const armH = 70.0;  // ← длина горизонтального плеча
-      const armV = 120.0;  // ← длина вертикального плеча
-
-      _drawCross(canvas, cx, cy, armH, armV);
-
-      // ── Текст в 4 секторах креста ────────────────────────────────────
-      const gap = 10.0;
-
-      final ts = TextStyle(
-        color: Colors.white.withOpacity(0.65),
-        fontSize: 10,
-        fontWeight: FontWeight.w600,
-        letterSpacing: 0.5,
-      );
-
-      final sectors = [
-        // [текст, x, y]
-        ['Tap',     cx - armH / 5,  cy - gap * 1],   
-        ['To',      cx + armH / 6.5,  cy - gap * 1],   
-        ['Add',     cx - armH / 5,  cy + gap * 1],  
-        ['Name', cx + armH / 3.2,  cy + gap * 1],  
-      ];
-
-      for (final s in sectors) {
-        final tp = TextPainter(
-          text: TextSpan(text: s[0] as String, style: ts),
-          textAlign: TextAlign.center,
-          textDirection: TextDirection.ltr,
-        )..layout(maxWidth: armH - gap);
-        tp.paint(canvas, Offset((s[1] as double) - tp.width / 2, (s[2] as double) - tp.height / 2));
-      }
-    } else {
+    if (guardianNames.isNotEmpty) {
       const cx = 160.0;
       const lineH = 28.0;
-      const crossArmH = 50.0;
-      const crossArmV = 70.0;
-      const gapBetween = 20.0; // отступ между именами и крестом
 
-      // Общая высота: имена + отступ + крест
       final namesHeight = guardianNames.length * lineH;
-      final crossHeight = crossArmV * 2;
-      final totalHeight = namesHeight + gapBetween + crossHeight;
 
-      // Центрируем всё в зоне щита (y: 60..360)
       const shieldTop = 60.0;
       const shieldBottom = 360.0;
-      final startY = shieldTop + (shieldBottom - shieldTop - totalHeight) / 2;
+      final startY = shieldTop + (shieldBottom - shieldTop - namesHeight) / 2 - 40;
 
-      // ── Имена ──────────────────────────────────────
       for (int i = 0; i < guardianNames.length; i++) {
         final tp = TextPainter(
           text: TextSpan(
@@ -554,66 +564,67 @@ class _ShieldPainter extends CustomPainter {
         )..layout(maxWidth: 180);
         tp.paint(canvas, Offset(cx - tp.width / 2, startY + i * lineH));
       }
-
-      // ── Крест ──────────────────────────────────────
-      final crossCy = startY + namesHeight + gapBetween + crossArmV;
-
-      _drawCross(canvas, cx, crossCy, crossArmH, crossArmV);
-
-      // ── Текст на кресте ────────────────────────────
-      const gap = 5.0;
-      final ts = TextStyle(
-        color: Colors.white.withOpacity(0.65),
-        fontSize: 10,
-        fontWeight: FontWeight.w600,
-        letterSpacing: 0.5,
-      );
-
-      final sectors = [
-        ['Tap',  cx - crossArmH / 3.8, crossCy - gap * 1.3],
-        ['To',   cx + crossArmH / 5.8,   crossCy - gap * 1.3],
-        ['Add',  cx - crossArmH / 3.8, crossCy + gap * 1.3],
-        ['Name', cx + crossArmH / 2.7,   crossCy + gap * 1.3],
-      ];
-
-      for (final s in sectors) {
-        final tp = TextPainter(
-          text: TextSpan(text: s[0] as String, style: ts),
-          textAlign: TextAlign.center,
-          textDirection: TextDirection.ltr,
-        )..layout(maxWidth: crossArmH - gap);
-        tp.paint(canvas, Offset(
-          (s[1] as double) - tp.width / 2,
-          (s[2] as double) - tp.height / 2,
-        ));
-      }
     }
+
+      // // ── Крест ──────────────────────────────────────
+      // final crossCy = startY + namesHeight + gapBetween + crossArmV;
+
+      // // _drawCross(canvas, cx, crossCy, crossArmH, crossArmV);
+
+      // // ── Текст на кресте ────────────────────────────
+      // const gap = 5.0;
+      // final ts = TextStyle(
+      //   color: Colors.white.withOpacity(0.65),
+      //   fontSize: 10,
+      //   fontWeight: FontWeight.w600,
+      //   letterSpacing: 0.5,
+      // );
+
+      // final sectors = [
+      //   ['Tap',  cx - crossArmH / 3.8, crossCy - gap * 1.3],
+      //   ['To',   cx + crossArmH / 5.8,   crossCy - gap * 1.3],
+      //   ['Add',  cx - crossArmH / 3.8, crossCy + gap * 1.3],
+      //   ['Name', cx + crossArmH / 2.7,   crossCy + gap * 1.3],
+      // ];
+
+      // for (final s in sectors) {
+      //   final tp = TextPainter(
+      //     text: TextSpan(text: s[0] as String, style: ts),
+      //     textAlign: TextAlign.center,
+      //     textDirection: TextDirection.ltr,
+      //   )..layout(maxWidth: crossArmH - gap);
+      //   tp.paint(canvas, Offset(
+      //     (s[1] as double) - tp.width / 2,
+      //     (s[2] as double) - tp.height / 2,
+      //   ));
+      // }
+    // }
 
     canvas.restore();
   }
 
-  void _drawCross(Canvas canvas, double cx, double cy, double armH, double armV) {
-    // Glow
-    final glowPaint = Paint()
-      ..color = Colors.white.withOpacity(0.15)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 12
-      ..strokeCap = StrokeCap.round
-      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 8);
+  // void _drawCross(Canvas canvas, double cx, double cy, double armH, double armV) {
+  //   // Glow
+  //   final glowPaint = Paint()
+  //     ..color = Colors.white.withOpacity(0.15)
+  //     ..style = PaintingStyle.stroke
+  //     ..strokeWidth = 12
+  //     ..strokeCap = StrokeCap.round
+  //     ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 8);
 
-    canvas.drawLine(Offset(cx - armH, cy), Offset(cx + armH, cy), glowPaint);
-    canvas.drawLine(Offset(cx, cy - armV), Offset(cx, cy + armV), glowPaint);
+  //   canvas.drawLine(Offset(cx - armH, cy), Offset(cx + armH, cy), glowPaint);
+  //   canvas.drawLine(Offset(cx, cy - armV), Offset(cx, cy + armV), glowPaint);
 
-    // Cross
-    final crossPaint = Paint()
-      ..color = Colors.white.withOpacity(0.9)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 3
-      ..strokeCap = StrokeCap.round;
+  //   // Cross
+  //   final crossPaint = Paint()
+  //     ..color = Colors.white.withOpacity(0.9)
+  //     ..style = PaintingStyle.stroke
+  //     ..strokeWidth = 3
+  //     ..strokeCap = StrokeCap.round;
 
-    canvas.drawLine(Offset(cx - armH, cy), Offset(cx + armH, cy), crossPaint);
-    canvas.drawLine(Offset(cx, cy - armV), Offset(cx, cy + armV), crossPaint);
-  }
+  //   canvas.drawLine(Offset(cx - armH, cy), Offset(cx + armH, cy), crossPaint);
+  //   canvas.drawLine(Offset(cx, cy - armV), Offset(cx, cy + armV), crossPaint);
+  // }
 
   @override
   bool shouldRepaint(_ShieldPainter old) => old.guardianNames != guardianNames;
