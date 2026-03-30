@@ -89,10 +89,31 @@ class _MainScreenState extends State<MainScreen> {
           Vibration.vibrate(duration: 500);
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('SOS sent to ${result['recipients']} guardians'),
-              backgroundColor: Colors.green[700],
+              content: Row(
+                children: [
+                  Icon(Icons.check_circle_outline, color: Colors.white.withOpacity(0.9), size: 22),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      'SOS sent to guardians',
+                      style: TextStyle(
+                        color: Colors.white.withOpacity(0.95),
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              backgroundColor: const Color(0xFF1B5E20).withOpacity(0.45),
               behavior: SnackBarBehavior.floating,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+                side: BorderSide(color: Colors.white.withOpacity(0.15), width: 1),
+              ),
+              elevation: 0,
+              margin: const EdgeInsets.only(left: 24, right: 24, bottom: 150),
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
               duration: const Duration(seconds: 3),
             ),
           );
