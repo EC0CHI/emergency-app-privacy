@@ -64,6 +64,7 @@ class _GuardiansScreenState extends State<GuardiansScreen> {
   void _onIdChanged(int idx, String value) {
     _debounceTimers[idx]?.cancel();
     if (value.isEmpty) {
+      _nicknameControllers[idx].clear();
       setState(() {
         _isSearching[idx] = false;
         _searchCompleted[idx] = false;
