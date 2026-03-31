@@ -120,10 +120,31 @@ class _MainScreenState extends State<MainScreen> {
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Error: ${result['error']}'),
-              backgroundColor: Colors.red[900],
+              content: Row(
+                children: [
+                  Icon(Icons.error_outline, color: Colors.white.withOpacity(0.9), size: 22),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      'Error: ${result['error']}',
+                      style: TextStyle(
+                        color: Colors.white.withOpacity(0.95),
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              backgroundColor: const Color(0xFF2A0000).withOpacity(0.85),
               behavior: SnackBarBehavior.floating,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+                side: BorderSide(color: Colors.white.withOpacity(0.15), width: 1),
+              ),
+              elevation: 0,
+              margin: EdgeInsets.only(left: 24, right: 24, bottom: MediaQuery.of(context).size.height * 0.17),
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
               duration: const Duration(seconds: 4),
             ),
           );
@@ -133,10 +154,32 @@ class _MainScreenState extends State<MainScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error: $e'),
-            backgroundColor: Colors.red[900],
+            content: Row(
+              children: [
+                Icon(Icons.error_outline, color: Colors.white.withOpacity(0.9), size: 22),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    'Error: $e',
+                    style: TextStyle(
+                      color: Colors.white.withOpacity(0.95),
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            backgroundColor: const Color(0xFF2A0000).withOpacity(0.85),
             behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
+              side: BorderSide(color: Colors.white.withOpacity(0.15), width: 1),
+            ),
+            elevation: 0,
+            margin: EdgeInsets.only(left: 24, right: 24, bottom: MediaQuery.of(context).size.height * 0.17),
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+            duration: const Duration(seconds: 4),
           ),
         );
       }

@@ -209,10 +209,9 @@ class _GuardiansScreenState extends State<GuardiansScreen> {
 
                 // ── Guardian rows ──
                 Expanded(
-                  child: Column(
-                   mainAxisAlignment: MainAxisAlignment.start,
+                  child: ListView(
+                    padding: EdgeInsets.only(top: MediaQuery.of(context).size.height < 700 ? 40 : 84),
                     children: [
-                      SizedBox(height: MediaQuery.of(context).size.height < 700 ? 40 : 84),
                       for (int i = 0; i < _count; i++) ...[
                         _buildRow(i),
                         if (i < _count - 1) const SizedBox(height: 14),
