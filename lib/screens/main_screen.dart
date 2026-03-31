@@ -112,7 +112,7 @@ class _MainScreenState extends State<MainScreen> {
                 side: BorderSide(color: Colors.white.withOpacity(0.15), width: 1),
               ),
               elevation: 0,
-              margin: const EdgeInsets.only(left: 24, right: 24, bottom: 150),
+              margin: EdgeInsets.only(left: 24, right: 24, bottom: MediaQuery.of(context).size.height * 0.17),
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
               duration: const Duration(seconds: 3),
             ),
@@ -200,55 +200,63 @@ class _MainScreenState extends State<MainScreen> {
 
                         // ── Shield ─────────────────────────────────────────
                         Expanded(
-                          child: Center(
-                            child: SizedBox(
-                              width: 480,
-                              height: 620,
-                              child: Stack(
-                                children: [
-                                  CustomPaint(
-                                    size: const Size(480, 620),
-                                    painter: const _ShieldPainter(),
-                                  ),
-                                  // ── Скрещенные алебарды вместо креста ──
-                                  Positioned.fill(
-                                    child: Center(
-                                      child: Padding(
-                                        padding: const EdgeInsets.only(bottom: 30),
-                                        child: SvgPicture.asset(
-                                          'assets/images/Vectorizer-io-halberd.svg',
-                                          width: 200,
-                                          height: 200,
-                                          colorFilter: ColorFilter.mode(
-                                            Colors.white.withOpacity(0.85),
-                                            BlendMode.srcIn,
+                          child: LayoutBuilder(
+                            builder: (context, constraints) {
+                              final maxW = constraints.maxWidth * 1.2;
+                              final maxH = constraints.maxHeight;
+                              final shieldW = (maxH * 480 / 620).clamp(0.0, maxW);
+                              final shieldH = (shieldW * 620 / 480).clamp(0.0, maxH);
+                              final halberdSize = shieldW * 0.48;
+
+                              return Center(
+                                child: SizedBox(
+                                  width: shieldW,
+                                  height: shieldH,
+                                  child: Stack(
+                                    children: [
+                                      CustomPaint(
+                                        size: Size(shieldW, shieldH),
+                                        painter: const _ShieldPainter(),
+                                      ),
+                                      Positioned.fill(
+                                        child: Center(
+                                          child: Padding(
+                                            padding: EdgeInsets.only(bottom: shieldH * 0.05),
+                                            child: SvgPicture.asset(
+                                              'assets/images/Vectorizer-io-halberd.svg',
+                                              width: halberdSize,
+                                              height: halberdSize,
+                                              colorFilter: ColorFilter.mode(
+                                                Colors.white.withOpacity(0.85),
+                                                BlendMode.srcIn,
+                                              ),
+                                            ),
                                           ),
                                         ),
                                       ),
-                                    ),
-                                  ),
-                                  // ── Tap-зона ──
-                                  Center(
-                                    child: GestureDetector(
-                                      behavior: HitTestBehavior.opaque,
-                                      onTap: () => Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (context) => const GuardiansScreen(),
+                                      Center(
+                                        child: GestureDetector(
+                                          behavior: HitTestBehavior.opaque,
+                                          onTap: () => Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder: (context) => const GuardiansScreen(),
+                                            ),
+                                          ).then((_) => _loadUserData()),
+                                          child: SizedBox(
+                                            width: shieldW * 0.4,
+                                            height: shieldH * 0.45,
+                                          ),
                                         ),
-                                      ).then((_) => _loadUserData()),
-                                      child: const SizedBox(
-                                        width: 180,
-                                        height: 280,
                                       ),
-                                    ),
+                                    ],
                                   ),
-                                ],
-                              ),
-                            ),
+                                ),
+                              );
+                            },
                           ),
                         ),
-
+                        
                         // ── SOS Button ─────────────────────────────────────
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 24),
@@ -272,7 +280,7 @@ class _MainScreenState extends State<MainScreen> {
                                 onLongPressEnd: _onLongPressEnd,
                                 child: Container(
                                   width: double.infinity,
-                                  height: 96,
+                                  height: MediaQuery.of(context).size.height * 0.09,
                                   decoration: BoxDecoration(
                                     color: _isSending
                                         ? Colors.white.withOpacity(0.08)
@@ -295,7 +303,7 @@ class _MainScreenState extends State<MainScreen> {
                                               valueColor: AlwaysStoppedAnimation<Color>(
                                                 Colors.white.withOpacity(0.2),
                                               ),
-                                              minHeight: 96,
+                                              minHeight: MediaQuery.of(context).size.height * 0.09,
                                             ),
                                           ),
                                         ),
