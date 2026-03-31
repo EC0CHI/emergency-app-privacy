@@ -74,7 +74,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                 Text(
                   loc.welcome,
                   style: TextStyle(
-                    fontSize: 40,
+                    fontSize: MediaQuery.of(context).size.height < 700 ? 32 : 40,
                     fontWeight: FontWeight.w900,
                     color: Colors.white,
                     letterSpacing: 0.5,
@@ -129,7 +129,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                   onTap: canSubmit ? _onContinue : null,
                   child: AnimatedContainer(
                     duration: const Duration(milliseconds: 200),
-                    height: 72,
+                    height: MediaQuery.of(context).size.height * 0.08,
                     decoration: BoxDecoration(
                       color: canSubmit ? Colors.white : Colors.white.withOpacity(0.25),
                       borderRadius: BorderRadius.circular(36),
