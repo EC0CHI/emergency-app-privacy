@@ -15,15 +15,19 @@ class _LanguageScreenState extends State<LanguageScreen> {
   String _selectedLanguage = 'ru';
 
   @override
-  void initState() {
-    super.initState();
+  void didChangeDependencies() {
+    super.didChangeDependencies();
     _loadLanguage();
   }
 
+  bool _loaded = false;
+
   Future<void> _loadLanguage() async {
+    if (_loaded) return;
+    _loaded = true;
     final prefs = await SharedPreferences.getInstance();
     setState(() {
-      _selectedLanguage = prefs.getString('language') ?? 'ru';
+      _selectedLanguage = prefs.getString('language') ?? Localizations.localeOf(context).languageCode;
     });
   }
 
