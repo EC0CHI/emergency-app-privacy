@@ -1,5 +1,6 @@
 name: emergency_app
 description: Emergency contacts app
+version: 1.0.0+1
 
 environment:
   sdk: ^3.7.0
