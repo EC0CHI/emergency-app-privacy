@@ -25,6 +25,7 @@ dependencies:
   flutter_svg: ^2.2.2
 
 dev_dependencies:
+  flutter_native_splash: ^2.4.0
   flutter_test:
     sdk: flutter
   flutter_lints: ^5.0.0
@@ -41,3 +42,14 @@ flutter_launcher_icons:
   android: true
   ios: true
   image_path: "assets/icon/Guardians_icon3.png"
+
+flutter_native_splash:
+  color: "#6B0000"
+  image: assets/icon/Guardians_icon3.png
+  color_dark: "#3A0000"
+  image_dark: assets/icon/Guardians_icon3.png
+  android_12:
+    color: "#6B0000"
+    image: assets/icon/Guardians_icon3.png
+    color_dark: "#3A0000"
+    image_dark: assets/icon/Guardians_icon3.png
