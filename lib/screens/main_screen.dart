@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../services/user_service.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'settings_screen.dart';
 import '../services/sos_service.dart';
 import 'dart:async';
@@ -16,31 +16,57 @@ class MainScreen extends StatefulWidget {
   State<MainScreen> createState() => _MainScreenState();
 }
 
-class _MainScreenState extends State<MainScreen> {
+class _MainScreenState extends State<MainScreen> with SingleTickerProviderStateMixin {
   bool _isLoading = true;
   bool _isSending = false;
   bool _isLongPressing = false;
   double _pressProgress = 0.0;
   Timer? _pressTimer;
+  bool _hasGuardians = false;
+
+  late AnimationController _pulseController;
+  late Animation<double> _pulseAnimation;
 
   @override
   void initState() {
     super.initState();
+    _pulseController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 2500),
+    );
+    _pulseAnimation = Tween<double>(begin: 0.6, end: 1.0).animate(
+      CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
+    );
     _loadUserData();
   }
 
   @override
   void dispose() {
     _pressTimer?.cancel();
+    _pulseController.dispose();
     super.dispose();
   }
 
   Future<void> _loadUserData() async {
+    final prefs = await SharedPreferences.getInstance();
+    bool hasAny = false;
+    for (int i = 1; i <= 5; i++) {
+      if ((prefs.getString('guardian$i') ?? '').isNotEmpty) {
+        hasAny = true;
+        break;
+      }
+    }
 
     if (mounted) {
       setState(() {
+        _hasGuardians = hasAny;
         _isLoading = false;
       });
+      if (!hasAny) {
+        _pulseController.repeat(reverse: true);
+      } else {
+        _pulseController.stop();
+      }
     }
   }
 
@@ -87,105 +113,61 @@ class _MainScreenState extends State<MainScreen> {
       if (mounted) {
         if (result['success'] == true) {
           Vibration.vibrate(duration: 500);
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Row(
-                children: [
-                  Icon(Icons.check_circle_outline, color: Colors.white.withOpacity(0.9), size: 22),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Text(
-                      'SOS sent to guardians',
-                      style: TextStyle(
-                        color: Colors.white.withOpacity(0.95),
-                        fontSize: 15,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              backgroundColor: const Color(0xFF1B5E20).withOpacity(0.45),
-              behavior: SnackBarBehavior.floating,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(20),
-                side: BorderSide(color: Colors.white.withOpacity(0.15), width: 1),
-              ),
-              elevation: 0,
-              margin: EdgeInsets.only(left: 24, right: 24, bottom: MediaQuery.of(context).size.height * 0.17),
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-              duration: const Duration(seconds: 3),
-            ),
-          );
+          _showSnackBar('SOS sent to guardians', isError: false);
         } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Row(
-                children: [
-                  Icon(Icons.error_outline, color: Colors.white.withOpacity(0.9), size: 22),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Text(
-                      'Error: ${result['error']}',
-                      style: TextStyle(
-                        color: Colors.white.withOpacity(0.95),
-                        fontSize: 15,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              backgroundColor: const Color(0xFF2A0000).withOpacity(0.85),
-              behavior: SnackBarBehavior.floating,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(20),
-                side: BorderSide(color: Colors.white.withOpacity(0.15), width: 1),
-              ),
-              elevation: 0,
-              margin: EdgeInsets.only(left: 24, right: 24, bottom: MediaQuery.of(context).size.height * 0.17),
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-              duration: const Duration(seconds: 4),
-            ),
-          );
+          _showSnackBar('Error: ${result['error']}', isError: true);
         }
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Row(
-              children: [
-                Icon(Icons.error_outline, color: Colors.white.withOpacity(0.9), size: 22),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Text(
-                    'Error: $e',
-                    style: TextStyle(
-                      color: Colors.white.withOpacity(0.95),
-                      fontSize: 15,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            backgroundColor: const Color(0xFF2A0000).withOpacity(0.85),
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(20),
-              side: BorderSide(color: Colors.white.withOpacity(0.15), width: 1),
-            ),
-            elevation: 0,
-            margin: EdgeInsets.only(left: 24, right: 24, bottom: MediaQuery.of(context).size.height * 0.17),
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-            duration: const Duration(seconds: 4),
-          ),
-        );
+        _showSnackBar('Error: $e', isError: true);
       }
     } finally {
       if (mounted) setState(() => _isSending = false);
     }
+  }
+
+  void _showSnackBar(String message, {required bool isError}) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            Icon(
+              isError ? Icons.error_outline : Icons.check_circle_outline,
+              color: Colors.white.withOpacity(0.9),
+              size: 22,
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                message,
+                style: TextStyle(
+                  color: Colors.white.withOpacity(0.95),
+                  fontSize: 15,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ],
+        ),
+        backgroundColor: isError
+            ? const Color(0xFF2A0000).withOpacity(0.85)
+            : const Color(0xFF1B5E20).withOpacity(0.45),
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+          side: BorderSide(color: Colors.white.withOpacity(0.15), width: 1),
+        ),
+        elevation: 0,
+        margin: EdgeInsets.only(
+          left: 24,
+          right: 24,
+          bottom: MediaQuery.of(context).size.height * 0.17,
+        ),
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+        duration: Duration(seconds: isError ? 4 : 3),
+      ),
+    );
   }
 
   @override
@@ -206,286 +188,186 @@ class _MainScreenState extends State<MainScreen> {
             stops: [0.0, 0.6, 1.0],
           ),
         ),
-        child: Stack(
-          children: [
-            _isLoading
-                ? const Center(child: CircularProgressIndicator(color: Colors.white))
-                : SafeArea(
-                    child: Column(
-                      children: [
-                        // ── AppBar ─────────────────────────────────────────
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              const SizedBox(width: 22),
-                              GestureDetector(
-                                onTap: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) => SettingsScreen(
-                                        updateLocale: widget.updateLocale,
-                                      ),
-                                    ),
-                                  ).then((_) => _loadUserData());
-                                },
-                                child: const Icon(
-                                  Icons.settings_outlined,
-                                  color: Colors.white70,
-                                  size: 22,
+        child: _isLoading
+            ? const Center(child: CircularProgressIndicator(color: Colors.white))
+            : SafeArea(
+                child: Column(
+                  children: [
+                    // ── AppBar ──
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const SizedBox(width: 22),
+                          GestureDetector(
+                            onTap: () => Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => SettingsScreen(
+                                  updateLocale: widget.updateLocale,
                                 ),
                               ),
-                            ],
+                            ).then((_) => _loadUserData()),
+                            child: const Icon(
+                              Icons.settings_outlined,
+                              color: Colors.white70,
+                              size: 22,
+                            ),
                           ),
-                        ),
-
-                        // ── Shield ─────────────────────────────────────────
-                        Expanded(
-                          child: LayoutBuilder(
-                            builder: (context, constraints) {
-                              final maxW = constraints.maxWidth * 1.2;
-                              final maxH = constraints.maxHeight;
-                              final shieldW = (maxH * 480 / 620).clamp(0.0, maxW);
-                              final shieldH = (shieldW * 620 / 480).clamp(0.0, maxH);
-                              final halberdSize = shieldW * 0.48;
-
-                              return Center(
-                                child: SizedBox(
-                                  width: shieldW,
-                                  height: shieldH,
-                                  child: Stack(
-                                    children: [
-                                      CustomPaint(
-                                        size: Size(shieldW, shieldH),
-                                        painter: const _ShieldPainter(),
-                                      ),
-                                      Positioned.fill(
-                                        child: Center(
-                                          child: Padding(
-                                            padding: EdgeInsets.only(bottom: shieldH * 0.05),
-                                            child: SvgPicture.asset(
-                                              'assets/images/Vectorizer-io-halberd.svg',
-                                              width: halberdSize,
-                                              height: halberdSize,
-                                              colorFilter: ColorFilter.mode(
-                                                Colors.white.withOpacity(0.85),
-                                                BlendMode.srcIn,
-                                              ),
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                      Center(
-                                        child: GestureDetector(
-                                          behavior: HitTestBehavior.opaque,
-                                          onTap: () => Navigator.push(
-                                            context,
-                                            MaterialPageRoute(
-                                              builder: (context) => const GuardiansScreen(),
-                                            ),
-                                          ).then((_) => _loadUserData()),
-                                          child: SizedBox(
-                                            width: shieldW * 0.4,
-                                            height: shieldH * 0.45,
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              );
-                            },
-                          ),
-                        ),
-                        
-                        // ── SOS Button ─────────────────────────────────────
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 24),
-                          child: Column(
-                            children: [
-                              Text(
-                                _isSending
-                                    ? loc.sendingAlert
-                                    : _isLongPressing ? loc.keepHolding
-                                    : loc.holdToSend,
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  color: Colors.white.withOpacity(0.6),
-                                  fontWeight: FontWeight.w500,
-                                  letterSpacing: 0.3,
-                                ),
-                              ),
-                              const SizedBox(height: 16),
-                              GestureDetector(
-                                onLongPressStart: _onLongPressStart,
-                                onLongPressEnd: _onLongPressEnd,
-                                child: Container(
-                                  width: double.infinity,
-                                  height: MediaQuery.of(context).size.height * 0.09,
-                                  decoration: BoxDecoration(
-                                    color: _isSending
-                                        ? Colors.white.withOpacity(0.08)
-                                        : Colors.white.withOpacity(0.15),
-                                    borderRadius: BorderRadius.circular(48),
-                                    border: Border.all(
-                                      color: Colors.white.withOpacity(0.3),
-                                      width: 1.5,
-                                    ),
-                                  ),
-                                  child: Stack(
-                                    children: [
-                                      if (_isLongPressing)
-                                        Positioned.fill(
-                                          child: ClipRRect(
-                                            borderRadius: BorderRadius.circular(48),
-                                            child: LinearProgressIndicator(
-                                              value: _pressProgress,
-                                              backgroundColor: Colors.transparent,
-                                              valueColor: AlwaysStoppedAnimation<Color>(
-                                                Colors.white.withOpacity(0.2),
-                                              ),
-                                              minHeight: MediaQuery.of(context).size.height * 0.09,
-                                            ),
-                                          ),
-                                        ),
-                                      Center(
-                                        child: _isSending
-                                            ? const SizedBox(
-                                                width: 32,
-                                                height: 32,
-                                                child: CircularProgressIndicator(
-                                                  color: Colors.white,
-                                                  strokeWidth: 2.5,
-                                                ),
-                                              )
-                                            : const Text(
-                                                'SOS',
-                                                style: TextStyle(
-                                                  color: Colors.white,
-                                                  fontSize: 36,
-                                                  fontWeight: FontWeight.w900,
-                                                  letterSpacing: 8,
-                                                ),
-                                              ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-
-                        const SizedBox(height: 10),
-
-                      ],
+                        ],
+                      ),
                     ),
-                  ),
 
-          ],
-        ),
+                    // ── Coat of Arms ──
+                    Expanded(
+                      child: LayoutBuilder(
+                        builder: (context, constraints) {
+                          final maxW = constraints.maxWidth * 1.2;
+                          final maxH = constraints.maxHeight;
+                          final coatW = (maxH * 480 / 620).clamp(0.0, maxW);
+                          final coatH = (coatW * 620 / 480).clamp(0.0, maxH);
+                          final crossSize = coatW * 0.28;
+
+                          return Center(
+                            child: GestureDetector(
+                              behavior: HitTestBehavior.opaque,
+                              onTap: () => Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => const GuardiansScreen(),
+                                ),
+                              ).then((_) => _loadUserData()),
+                              child: SizedBox(
+                                width: coatW,
+                                height: coatH,
+                                child: Stack(
+                                  alignment: Alignment.center,
+                                  children: [
+                                    // Герб
+                                    SvgPicture.asset(
+                                      'assets/images/shield.svg',
+                                      width: coatW,
+                                      height: coatH,
+                                      colorFilter: ColorFilter.mode(
+                                        Colors.white.withOpacity(0.85),
+                                        BlendMode.srcIn,
+                                      ),
+                                    ),
+                                    // Мальтийский крест с пульсацией
+                                    Positioned(
+                                      bottom: coatH * 0.18,
+                                      child: AnimatedBuilder(
+                                        animation: _pulseAnimation,
+                                        builder: (context, child) {
+                                          return Opacity(
+                                            opacity: _hasGuardians ? 0.85 : _pulseAnimation.value,
+                                            child: child,
+                                          );
+                                        },
+                                        child: SvgPicture.asset(
+                                          'assets/images/maltese_cross.svg',
+                                          width: crossSize,
+                                          height: crossSize,
+                                          colorFilter: ColorFilter.mode(
+                                            Colors.white.withOpacity(0.85),
+                                            BlendMode.srcIn,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+
+                    // ── SOS Button ──
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 24),
+                      child: Column(
+                        children: [
+                          Text(
+                            _isSending
+                                ? loc.sendingAlert
+                                : _isLongPressing
+                                    ? loc.keepHolding
+                                    : loc.holdToSend,
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Colors.white.withOpacity(0.6),
+                              fontWeight: FontWeight.w500,
+                              letterSpacing: 0.3,
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          GestureDetector(
+                            onLongPressStart: _onLongPressStart,
+                            onLongPressEnd: _onLongPressEnd,
+                            child: Container(
+                              width: double.infinity,
+                              height: MediaQuery.of(context).size.height * 0.09,
+                              decoration: BoxDecoration(
+                                color: _isSending
+                                    ? Colors.white.withOpacity(0.08)
+                                    : Colors.white.withOpacity(0.15),
+                                borderRadius: BorderRadius.circular(48),
+                                border: Border.all(
+                                  color: Colors.white.withOpacity(0.3),
+                                  width: 1.5,
+                                ),
+                              ),
+                              child: Stack(
+                                children: [
+                                  if (_isLongPressing)
+                                    Positioned.fill(
+                                      child: ClipRRect(
+                                        borderRadius: BorderRadius.circular(48),
+                                        child: LinearProgressIndicator(
+                                          value: _pressProgress,
+                                          backgroundColor: Colors.transparent,
+                                          valueColor: AlwaysStoppedAnimation<Color>(
+                                            Colors.white.withOpacity(0.2),
+                                          ),
+                                          minHeight: MediaQuery.of(context).size.height * 0.09,
+                                        ),
+                                      ),
+                                    ),
+                                  Center(
+                                    child: _isSending
+                                        ? const SizedBox(
+                                            width: 32,
+                                            height: 32,
+                                            child: CircularProgressIndicator(
+                                              color: Colors.white,
+                                              strokeWidth: 2.5,
+                                            ),
+                                          )
+                                        : const Text(
+                                            'SOS',
+                                            style: TextStyle(
+                                              color: Colors.white,
+                                              fontSize: 36,
+                                              fontWeight: FontWeight.w900,
+                                              letterSpacing: 8,
+                                            ),
+                                          ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                  ],
+                ),
+              ),
       ),
     );
   }
-}
-
-// ── Shield CustomPainter — концентрические белые линии ────────────────────────
-
-class _ShieldPainter extends CustomPainter {
-
-  const _ShieldPainter();
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final double scaleX = size.width / 320;
-    final double scaleY = size.height / 440;
-
-    canvas.save();
-    canvas.scale(scaleX, scaleY);
-
-    // ── Заливка (самый внешний контур) ──────────────────────────────────
-    final fillPath = Path()
-      ..moveTo(160, 20 + 14)
-      ..cubicTo(180, 34, 260 - 14 * 0.3, 50 + 14 * 0.5, 256, 79)
-      ..lineTo(256, 190)
-      ..cubicTo(256, 265 - 14 * 0.3, 230 - 14 * 0.5, 320 - 14 * 0.5, 160, 390 - 14 * 1.2)
-      ..cubicTo(90 + 14 * 0.5, 320 - 14 * 0.5, 64, 265 - 14 * 0.3, 64, 190)
-      ..lineTo(64, 79)
-      ..cubicTo(60 + 14 * 0.8, 57, 143, 34, 160, 34)
-      ..close();
-
-    final fillPaint = Paint()
-      ..color = Colors.white.withOpacity(0.12)
-      ..style = PaintingStyle.fill;
-
-    canvas.drawPath(fillPath, fillPaint);
-
-    // ── Граница заливки (тонкая белая рамка) ────────────────────────────
-    final borderPaint = Paint()
-      ..color = Colors.white.withOpacity(0.2)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.0;
-
-    canvas.drawPath(fillPath, borderPaint);
-
-    // ── Концентрические линии внутри ────────────────────────────────────
-    final lines = [
-      _ShieldLine(offset: 14, strokeWidth: 2.2, opacity: 0.80),
-      _ShieldLine(offset: 26, strokeWidth: 1.8, opacity: 0.60),
-      // _ShieldLine(offset: 37, strokeWidth: 1.4, opacity: 0.42),
-    ];
-
-    for (final line in lines) {
-      final o = line.offset.toDouble();
-      final paint = Paint()
-        ..color = Colors.white.withOpacity(line.opacity)
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = line.strokeWidth
-        ..strokeCap = StrokeCap.round
-        ..strokeJoin = StrokeJoin.round;
-
-      final path = Path()
-        ..moveTo(160, 20 + o)
-        ..cubicTo(180, 20 + o, 260 - o * 0.3, 50 + o * 0.5, 270 - o, 65 + o)
-        ..lineTo(270 - o, 190)
-        ..cubicTo(270 - o, 265 - o * 0.3, 230 - o * 0.5, 320 - o * 0.5, 160, 390 - o * 1.2)
-        ..cubicTo(90 + o * 0.5, 320 - o * 0.5, 50 + o, 265 - o * 0.3, 50 + o, 190)
-        ..lineTo(50 + o, 65 + o)
-        ..cubicTo(60 + o * 0.8, 50 + o * 0.5, 140 + o * 0.3, 20 + o, 160, 20 + o)
-        ..close();
-
-      canvas.drawPath(path, paint);
-    }
-
-    // ── Заголовок "Guardians" на щите ──
-    final titleStyle = TextStyle(
-      color: Colors.white.withOpacity(0.9),
-      fontSize: 20,
-      fontWeight: FontWeight.w800,
-      letterSpacing: 0.5,
-    );
-    final titlePainter = TextPainter(
-      text: TextSpan(text: 'Guardians', style: titleStyle),
-      textAlign: TextAlign.center,
-      textDirection: TextDirection.ltr,
-    )..layout(maxWidth: 200);
-    titlePainter.paint(
-      canvas,
-      Offset(160 - titlePainter.width / 2, 90),
-    );
-
-    canvas.restore();
-  }
-
-  @override
-  bool shouldRepaint(_ShieldPainter old) => false;
-}
-
-class _ShieldLine {
-  final int offset;
-  final double strokeWidth;
-  final double opacity;
-  const _ShieldLine({required this.offset, required this.strokeWidth, required this.opacity});
 }
