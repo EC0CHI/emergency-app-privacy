@@ -45,11 +45,11 @@ flutter_launcher_icons:
 
 flutter_native_splash:
   color: "#6B0000"
-  image: assets/icon/Guardians_icon3.png
+  image: assets/icon/guardian_knight.png
   color_dark: "#3A0000"
-  image_dark: assets/icon/Guardians_icon3.png
+  image_dark: assets/icon/guardian_knight.png
   android_12:
     color: "#6B0000"
-    image: assets/icon/Guardians_icon3.png
+    image: assets/icon/guardian_knight.png
     color_dark: "#3A0000"
-    image_dark: assets/icon/Guardians_icon3.png
+    image_dark: assets/icon/guardian_knight.png
