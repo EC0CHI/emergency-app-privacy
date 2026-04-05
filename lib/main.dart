@@ -8,6 +8,7 @@ import 'screens/welcome_screen.dart';
 import 'services/supabase_service.dart';
 import 'services/onesignal_service.dart';
 import 'services/user_service.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -112,8 +113,8 @@ class _MyAppState extends State<MyApp> {
       theme: ThemeData(
         brightness: Brightness.light,
         primarySwatch: Colors.grey,
-        fontFamily: 'Roboto',
         useMaterial3: true,
+        textTheme: GoogleFonts.medievalSharpTextTheme(),
       ),
       locale: _locale,
       supportedLocales: const [
