@@ -219,75 +219,8 @@ class _MainScreenState extends State<MainScreen> with SingleTickerProviderStateM
                       ),
                     ),
 
-                    // ── Coat of Arms ──
-                    // Expanded(
-                    //   child: LayoutBuilder(
-                    //     builder: (context, constraints) {
-                    //       final maxW = constraints.maxWidth * 1.4;
-                    //       final maxH = constraints.maxHeight;
-                    //       final coatW = maxH * 480 / 620;
-                    //       final coatH = coatW * 620 / 480;
-                    //       final crossSize = coatW * 0.38;
-
-                    //       return Center(
-                    //         child: GestureDetector(
-                    //           behavior: HitTestBehavior.opaque,
-                    //           onTap: () => Navigator.push(
-                    //             context,
-                    //             MaterialPageRoute(
-                    //               builder: (context) => const GuardiansScreen(),
-                    //             ),
-                    //           ).then((_) => _loadUserData()),
-                    //           child: SizedBox(
-                    //             width: coatW,
-                    //             height: coatH,
-                    //             child: Stack(
-                    //               alignment: Alignment.center,
-                    //               children: [
-                    //                 // Герб
-                    //                 SvgPicture.asset(
-                    //                   'assets/images/shield.svg',
-                    //                   width: coatW,
-                    //                   height: coatH,
-                    //                   colorFilter: ColorFilter.mode(
-                    //                     Colors.white.withOpacity(0.85),
-                    //                     BlendMode.srcIn,
-                    //                   ),
-                    //                 ),
-                    //                 // Мальтийский крест с пульсацией
-                    //                 Positioned(
-                    //                   bottom: coatH * 0.28,
-                    //                   child: AnimatedBuilder(
-                    //                     animation: _pulseAnimation,
-                    //                     builder: (context, child) {
-                    //                       return Opacity(
-                    //                         opacity: _hasGuardians ? 0.85 : _pulseAnimation.value,
-                    //                         child: child,
-                    //                       );
-                    //                     },
-                    //                     child: SvgPicture.asset(
-                    //                       'assets/images/maltese_cross.svg',
-                    //                       width: crossSize,
-                    //                       height: crossSize,
-                    //                       colorFilter: ColorFilter.mode(
-                    //                         Colors.white.withOpacity(0.85),
-                    //                         BlendMode.srcIn,
-                    //                       ),
-                    //                     ),
-                    //                   ),
-                    //                 ),
-                    //               ],
-                    //             ),
-                    //           ),
-                    //         ),
-                    //       );
-                    //     },
-                    //   ),
-                    // ),
-
                     Expanded(
                       child: GestureDetector(
-                        behavior: HitTestBehavior.opaque,
                         onTap: () => Navigator.push(
                           context,
                           MaterialPageRoute(
@@ -295,7 +228,7 @@ class _MainScreenState extends State<MainScreen> with SingleTickerProviderStateM
                           ),
                         ).then((_) => _loadUserData()),
                         child: Padding(
-                          padding: const EdgeInsets.only(bottom: 60),
+                          padding: EdgeInsets.only(bottom: MediaQuery.of(context).size.height * 0.09),
                           child: FittedBox(
                             fit: BoxFit.contain,
                             child: SizedBox(
