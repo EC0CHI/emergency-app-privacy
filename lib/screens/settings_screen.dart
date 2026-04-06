@@ -9,6 +9,7 @@ import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import '../services/user_service.dart';
 import 'language_screen.dart';
 import 'donate_screen.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 class SettingsScreen extends StatefulWidget {
   final void Function(String) updateLocale;
@@ -130,7 +131,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           child: Text(
                             loc.settings,
                             textAlign: TextAlign.center,
-                            style: TextStyle(
+                            style: const TextStyle(
                               color: Colors.white,
                               fontWeight: FontWeight.w800,
                               fontSize: 22,
@@ -153,112 +154,94 @@ class _SettingsScreenState extends State<SettingsScreen> {
                               const SizedBox(height: 8),
 
                               // ── Profile card ─────────────────────────
-                              Container(
-                                padding: const EdgeInsets.all(20),
-                                decoration: BoxDecoration(
-                                  color: Colors.white.withOpacity(0.12),
-                                  borderRadius: BorderRadius.circular(20),
-                                  border: Border.all(color: Colors.white.withOpacity(0.2), width: 1),
-                                ),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
+                              SizedBox(
+                                child: Stack(
+                                  alignment: Alignment.center,
                                   children: [
-                                    // Name row
-                                    Row(
-                                      children: [
-                                        Expanded(
-                                          child: Column(
-                                            crossAxisAlignment: CrossAxisAlignment.start,
-                                            children: [
-                                              Text(
-                                                _userName.isNotEmpty ? _userName : '—',
-                                                style: const TextStyle(
-                                                  fontSize: 22,
-                                                  fontWeight: FontWeight.w800,
-                                                  color: Colors.white,
-                                                ),
-                                              ),
-                                              const SizedBox(height: 2),
-                                              Text(
-                                                loc.yourName,
-                                                style: TextStyle(
-                                                  fontSize: 14,
-                                                  color: Colors.white.withOpacity(0.5),
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                        GestureDetector(
-                                          onTap: _openEditDialog,
-                                          child: Container(
-                                            width: 44,
-                                            height: 44,
-                                            decoration: BoxDecoration(
-                                              color: Colors.white.withOpacity(0.15),
-                                              borderRadius: BorderRadius.circular(12),
-                                            ),
-                                            child: const Icon(Icons.edit_outlined, color: Colors.white, size: 20),
-                                          ),
-                                        ),
-                                      ],
+                                    SvgPicture.asset(
+                                      'assets/images/scroll_paper.svg',
+                                      width: MediaQuery.of(context).size.width - 40,
+                                      height: 220,
+                                      fit: BoxFit.fill,
                                     ),
-
-                                    const SizedBox(height: 20),
-
-                                    // ID row
-                                    Row(
-                                      children: [
-                                        Expanded(
-                                          child: Column(
-                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                    Padding(
+                                      padding: const EdgeInsets.symmetric(horizontal: 24),
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          // Name row
+                                          Row(
                                             children: [
-                                              Text(
-                                                _userId,
-                                                style: TextStyle(
-                                                  fontSize: 22,
-                                                  fontWeight: FontWeight.w800,
-                                                  letterSpacing: 2.5,
-                                                  color: Colors.white.withOpacity(0.85),
+                                              Expanded(
+                                                child: Column(
+                                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                                  children: [
+                                                    Text(
+                                                      _userName.isNotEmpty ? _userName : '—',
+                                                      style: const TextStyle(
+                                                        fontSize: 22,
+                                                        fontWeight: FontWeight.w800,
+                                                        color: Colors.white,
+                                                      ),
+                                                    ),
+                                                    const SizedBox(height: 2),
+                                                    Text(
+                                                      loc.yourName,
+                                                      style: TextStyle(
+                                                        fontSize: 14,
+                                                        color: Colors.white.withOpacity(0.5),
+                                                      ),
+                                                    ),
+                                                  ],
                                                 ),
                                               ),
-                                              const SizedBox(height: 2),
-                                              Text(
-                                                loc.yourId,
-                                                style: TextStyle(
-                                                  fontSize: 14,
-                                                  color: Colors.white.withOpacity(0.5),
-                                                ),
+                                              GestureDetector(
+                                                onTap: _openEditDialog,
+                                                child: const Icon(Icons.edit_outlined, color: Colors.white, size: 20),
                                               ),
                                             ],
                                           ),
-                                        ),
-                                        GestureDetector(
-                                          onTap: _copyToClipboard,
-                                          child: Container(
-                                            width: 44,
-                                            height: 44,
-                                            decoration: BoxDecoration(
-                                              color: Colors.white.withOpacity(0.15),
-                                              borderRadius: BorderRadius.circular(12),
-                                            ),
-                                            child: const Icon(Icons.content_copy, color: Colors.white, size: 20),
+                                          const SizedBox(height: 20),
+                                          // ID row
+                                          Row(
+                                            children: [
+                                              Expanded(
+                                                child: Column(
+                                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                                  children: [
+                                                    Text(
+                                                      _userId,
+                                                      style: TextStyle(
+                                                        fontSize: 22,
+                                                        fontWeight: FontWeight.w800,
+                                                        letterSpacing: 2.5,
+                                                        color: Colors.white.withOpacity(0.85),
+                                                      ),
+                                                    ),
+                                                    const SizedBox(height: 2),
+                                                    Text(
+                                                      loc.yourId,
+                                                      style: TextStyle(
+                                                        fontSize: 14,
+                                                        color: Colors.white.withOpacity(0.5),
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                              GestureDetector(
+                                                onTap: _copyToClipboard,
+                                                child: const Icon(Icons.content_copy, color: Colors.white, size: 20),
+                                              ),
+                                              const SizedBox(width: 16),
+                                              GestureDetector(
+                                                onTap: _shareId,
+                                                child: const Icon(Icons.ios_share, color: Colors.white, size: 20),
+                                              ),
+                                            ],
                                           ),
-                                        ),
-                                        const SizedBox(width: 10),
-                                        GestureDetector(
-                                          onTap: _shareId,
-                                          child: Container(
-                                            width: 44,
-                                            height: 44,
-                                            decoration: BoxDecoration(
-                                              color: Colors.white.withOpacity(0.15),
-                                              borderRadius: BorderRadius.circular(12),
-                                            ),
-                                            child: const Icon(Icons.ios_share, color: Colors.white, size: 20),
-                                          ),
-                                        ),
-                                      ],
+                                        ],
+                                      ),
                                     ),
                                   ],
                                 ),
@@ -266,7 +249,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
                               const SizedBox(height: 20),
 
-                              // ── Menu items (donate crypto style) ───
+                              // ── Menu items ───────────────────────────
                               _buildMenuCard(
                                 icon: Icons.shield_outlined,
                                 title: loc.guardians,
@@ -395,58 +378,54 @@ class _SettingsScreenState extends State<SettingsScreen> {
     required String subtitle,
     required VoidCallback onTap,
   }) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.12),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.white.withOpacity(0.2), width: 1),
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(20),
-          child: Padding(
-            padding: const EdgeInsets.all(20),
-            child: Row(
-              children: [
-                Container(
-                  width: 52,
-                  height: 52,
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.15),
-                    borderRadius: BorderRadius.circular(14),
-                  ),
-                  child: Icon(icon, color: Colors.white, size: 28),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        title,
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w700,
-                          color: Colors.white,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        subtitle,
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: Colors.white.withOpacity(0.5),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                Icon(Icons.arrow_forward_ios, size: 16, color: Colors.white.withOpacity(0.4)),
-              ],
+    return GestureDetector(
+      onTap: onTap,
+      child: SizedBox(
+        height: 110,
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            SvgPicture.asset(
+              'assets/images/scroll_paper.svg',
+              width: MediaQuery.of(context).size.width - 40,
+              height: 110,
+              fit: BoxFit.fill,
             ),
-          ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24),
+              child: Row(
+                children: [
+                  Icon(icon, color: Colors.white, size: 28),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          title,
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w700,
+                            color: Colors.white,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          subtitle,
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Colors.white.withOpacity(0.5),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Icon(Icons.arrow_forward_ios, size: 16, color: Colors.white.withOpacity(0.4)),
+                ],
+              ),
+            ),
+          ],
         ),
       ),
     );
