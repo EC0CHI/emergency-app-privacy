@@ -276,82 +276,60 @@ class _MainScreenState extends State<MainScreen> with SingleTickerProviderStateM
                     ),
 
                     // ── SOS Button ──
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 24),
-                      child: Column(
-                        children: [
-                          Text(
-                            _isSending
-                                ? loc.sendingAlert
-                                : _isLongPressing
-                                    ? loc.keepHolding
-                                    : loc.holdToSend,
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: Colors.white.withOpacity(0.6),
-                              fontWeight: FontWeight.w500,
-                              letterSpacing: 0.3,
-                            ),
+                    Column(
+                      children: [
+                        Text(
+                          _isSending
+                              ? loc.sendingAlert
+                              : _isLongPressing
+                                  ? loc.keepHolding
+                                  : loc.holdToSend,
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Colors.white.withOpacity(0.6),
+                            fontWeight: FontWeight.w500,
+                            letterSpacing: 0.3,
                           ),
-                          const SizedBox(height: 16),
-                          GestureDetector(
-                            onLongPressStart: _onLongPressStart,
-                            onLongPressEnd: _onLongPressEnd,
-                            child: Container(
-                              width: double.infinity,
-                              height: MediaQuery.of(context).size.height * 0.09,
-                              decoration: BoxDecoration(
-                                color: _isSending
-                                    ? Colors.white.withOpacity(0.08)
-                                    : Colors.white.withOpacity(0.15),
-                                borderRadius: BorderRadius.circular(48),
-                                border: Border.all(
-                                  color: Colors.white.withOpacity(0.3),
-                                  width: 1.5,
+                        ),
+                        const SizedBox(height: 18),
+                        GestureDetector(
+                          onLongPressStart: _onLongPressStart,
+                          onLongPressEnd: _onLongPressEnd,
+                          child: SizedBox(
+                            width: MediaQuery.of(context).size.width,
+                            height: MediaQuery.of(context).size.height * 0.12,
+                            child: Stack(
+                              alignment: Alignment.center,
+                              children: [
+                                SvgPicture.asset(
+                                  'assets/images/scroll_paper.svg',
+                                  width: MediaQuery.of(context).size.width,
+                                  height: MediaQuery.of(context).size.height * 0.12,
+                                  fit: BoxFit.fill,
                                 ),
-                              ),
-                              child: Stack(
-                                children: [
-                                  if (_isLongPressing)
-                                    Positioned.fill(
-                                      child: ClipRRect(
-                                        borderRadius: BorderRadius.circular(48),
-                                        child: LinearProgressIndicator(
-                                          value: _pressProgress,
-                                          backgroundColor: Colors.transparent,
-                                          valueColor: AlwaysStoppedAnimation<Color>(
-                                            Colors.white.withOpacity(0.2),
-                                          ),
-                                          minHeight: MediaQuery.of(context).size.height * 0.09,
+                                _isSending
+                                    ? const SizedBox(
+                                        width: 32,
+                                        height: 32,
+                                        child: CircularProgressIndicator(
+                                          color: Colors.white,
+                                          strokeWidth: 2.5,
+                                        ),
+                                      )
+                                    : const Text(
+                                        'SOS',
+                                        style: TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 36,
+                                          fontWeight: FontWeight.w900,
+                                          letterSpacing: 8,
                                         ),
                                       ),
-                                    ),
-                                  Center(
-                                    child: _isSending
-                                        ? const SizedBox(
-                                            width: 32,
-                                            height: 32,
-                                            child: CircularProgressIndicator(
-                                              color: Colors.white,
-                                              strokeWidth: 2.5,
-                                            ),
-                                          )
-                                        : const Text(
-                                            'SOS',
-                                            style: TextStyle(
-                                              color: Colors.white,
-                                              fontSize: 36,
-                                              fontWeight: FontWeight.w900,
-                                              letterSpacing: 8,
-                                            ),
-                                          ),
-                                  ),
-                                ],
-                              ),
+                              ],
                             ),
                           ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
                     const SizedBox(height: 10),
                   ],
