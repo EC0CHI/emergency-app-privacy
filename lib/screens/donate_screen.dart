@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 class DonateScreen extends StatelessWidget {
   const DonateScreen({super.key});
@@ -69,43 +70,45 @@ class DonateScreen extends StatelessWidget {
                     const SizedBox(height: 8),
 
                     // Header card
-                    Container(
-                      padding: const EdgeInsets.all(28),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.12),
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(color: Colors.white.withOpacity(0.2), width: 1),
-                      ),
-                      child: Column(
+                    SizedBox(
+                      height: 250,
+                      child: Stack(
+                        alignment: Alignment.center,
                         children: [
-                          Container(
-                            width: 72,
-                            height: 72,
-                            decoration: BoxDecoration(
-                              color: Colors.white.withOpacity(0.15),
-                              shape: BoxShape.circle,
-                            ),
-                            child: const Icon(Icons.favorite, color: Colors.white, size: 36),
+                          SvgPicture.asset(
+                            'assets/images/scroll_paper.svg',
+                            width: MediaQuery.of(context).size.width - 40,
+                            height: 250,
+                            fit: BoxFit.fill,
                           ),
-                          const SizedBox(height: 16),
-                          Text(
-                            loc.supportDevelopment,
-                            style: const TextStyle(
-                              fontSize: 22,
-                              fontWeight: FontWeight.w800,
-                              color: Colors.white,
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 28),
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const Icon(Icons.favorite, color: Colors.white, size: 36),
+                                const SizedBox(height: 16),
+                                Text(
+                                  loc.supportDevelopment,
+                                  style: const TextStyle(
+                                    fontSize: 22,
+                                    fontWeight: FontWeight.w800,
+                                    color: Colors.white,
+                                  ),
+                                  textAlign: TextAlign.center,
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  loc.donateDescription,
+                                  style: TextStyle(
+                                    fontSize: 15,
+                                    color: Colors.white.withOpacity(0.6),
+                                    height: 1.5,
+                                  ),
+                                  textAlign: TextAlign.center,
+                                ),
+                              ],
                             ),
-                            textAlign: TextAlign.center,
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            loc.donateDescription,
-                            style: TextStyle(
-                              fontSize: 15,
-                              color: Colors.white.withOpacity(0.6),
-                              height: 1.5,
-                            ),
-                            textAlign: TextAlign.center,
                           ),
                         ],
                       ),
@@ -114,58 +117,54 @@ class DonateScreen extends StatelessWidget {
                     const SizedBox(height: 20),
 
                     // Crypto option
-                    Container(
-                      decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.12),
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(color: Colors.white.withOpacity(0.2), width: 1),
-                      ),
-                      child: Material(
-                        color: Colors.transparent,
-                        child: InkWell(
-                          onTap: () => _showCryptoAddresses(context),
-                          borderRadius: BorderRadius.circular(20),
-                          child: Padding(
-                            padding: const EdgeInsets.all(20),
-                            child: Row(
-                              children: [
-                                Container(
-                                  width: 52,
-                                  height: 52,
-                                  decoration: BoxDecoration(
-                                    color: Colors.white.withOpacity(0.15),
-                                    borderRadius: BorderRadius.circular(14),
-                                  ),
-                                  child: const Icon(Icons.currency_bitcoin, color: Colors.white, size: 28),
-                                ),
-                                const SizedBox(width: 16),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      const Text(
-                                        'Crypto (BTC/ETH/USDT)',
-                                        style: TextStyle(
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.w700,
-                                          color: Colors.white,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 4),
-                                      Text(
-                                        loc.anyAmount,
-                                        style: TextStyle(
-                                          fontSize: 14,
-                                          color: Colors.white.withOpacity(0.5),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                Icon(Icons.arrow_forward_ios, size: 16, color: Colors.white.withOpacity(0.4)),
-                              ],
+                    GestureDetector(
+                      onTap: () => _showCryptoAddresses(context),
+                      child: SizedBox(
+                        height: 110,
+                        child: Stack(
+                          alignment: Alignment.center,
+                          children: [
+                            SvgPicture.asset(
+                              'assets/images/scroll_paper.svg',
+                              width: MediaQuery.of(context).size.width - 40,
+                              height: 110,
+                              fit: BoxFit.fill,
                             ),
-                          ),
+                            Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 24),
+                              child: Row(
+                                children: [
+                                  const Icon(Icons.currency_bitcoin, color: Colors.white, size: 28),
+                                  const SizedBox(width: 16),
+                                  Expanded(
+                                    child: Column(
+                                      mainAxisSize: MainAxisSize.min,
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        const Text(
+                                          'Crypto (BTC/ETH/USDT)',
+                                          style: TextStyle(
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.w700,
+                                            color: Colors.white,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 4),
+                                        Text(
+                                          loc.anyAmount,
+                                          style: TextStyle(
+                                            fontSize: 14,
+                                            color: Colors.white.withOpacity(0.5),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  Icon(Icons.arrow_forward_ios, size: 16, color: Colors.white.withOpacity(0.4)),
+                                ],
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ),
