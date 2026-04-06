@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 class LanguageScreen extends StatefulWidget {
   final void Function(String) updateLocale;
@@ -105,27 +106,38 @@ class _LanguageScreenState extends State<LanguageScreen> {
                   padding: const EdgeInsets.symmetric(horizontal: 20),
                   children: [
                     const SizedBox(height: 32),
-                    Container(
-                      decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.12),
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(color: Colors.white.withOpacity(0.2), width: 1),
-                      ),
-                      child: Column(
+                    SizedBox(
+                      height: 630,
+                      child: Stack(
+                        alignment: Alignment.center,
                         children: [
-                          _buildLanguageItem(flag: '🇷🇺', language: loc.russian, code: 'ru', isFirst: true),
-                          _buildDivider(),
-                          _buildLanguageItem(flag: '🇬🇧', language: loc.english, code: 'en'),
-                          _buildDivider(),
-                          _buildLanguageItem(flag: '🇨🇳', language: loc.chinese, code: 'zh'),
-                          _buildDivider(),
-                          _buildLanguageItem(flag: '🇪🇸', language: loc.spanish, code: 'es'),
-                          _buildDivider(),
-                          _buildLanguageItem(flag: '🇸🇦', language: loc.arabic, code: 'ar'),
-                          _buildDivider(),
-                          _buildLanguageItem(flag: '🇫🇷', language: loc.french, code: 'fr'),
-                          _buildDivider(),
-                          _buildLanguageItem(flag: '🇩🇪', language: loc.german, code: 'de', isLast: true),
+                          SvgPicture.asset(
+                            'assets/images/scroll_paper.svg',
+                            width: MediaQuery.of(context).size.width - 40,
+                            height: 630,
+                            fit: BoxFit.fill,
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                _buildLanguageItem(flag: '🇷🇺', language: loc.russian, code: 'ru'),
+                                _buildDivider(),
+                                _buildLanguageItem(flag: '🇬🇧', language: loc.english, code: 'en'),
+                                _buildDivider(),
+                                _buildLanguageItem(flag: '🇨🇳', language: loc.chinese, code: 'zh'),
+                                _buildDivider(),
+                                _buildLanguageItem(flag: '🇪🇸', language: loc.spanish, code: 'es'),
+                                _buildDivider(),
+                                _buildLanguageItem(flag: '🇸🇦', language: loc.arabic, code: 'ar'),
+                                _buildDivider(),
+                                _buildLanguageItem(flag: '🇫🇷', language: loc.french, code: 'fr'),
+                                _buildDivider(),
+                                _buildLanguageItem(flag: '🇩🇪', language: loc.german, code: 'de'),
+                              ],
+                            ),
+                          ),
                         ],
                       ),
                     ),
@@ -143,52 +155,44 @@ class _LanguageScreenState extends State<LanguageScreen> {
     required String flag,
     required String language,
     required String code,
-    bool isFirst = false,
-    bool isLast = false,
   }) {
     final isSelected = _selectedLanguage == code;
 
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: () => _saveLanguage(code),
-        borderRadius: BorderRadius.vertical(
-          top: isFirst ? const Radius.circular(20) : Radius.zero,
-          bottom: isLast ? const Radius.circular(20) : Radius.zero,
-        ),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-          child: Row(
-            children: [
-              Text(flag, style: const TextStyle(fontSize: 28)),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Text(
-                  language,
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                    color: Colors.white,
-                  ),
+    return GestureDetector(
+      onTap: () => _saveLanguage(code),
+      behavior: HitTestBehavior.opaque,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+        child: Row(
+          children: [
+            Text(flag, style: const TextStyle(fontSize: 28)),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Text(
+                language,
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                  color: Colors.white,
                 ),
               ),
-              if (isSelected)
-                Container(
-                  padding: const EdgeInsets.all(4),
-                  decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
-                  child: const Icon(Icons.check, color: Color(0xFFB71C1C), size: 16),
-                )
-              else
-                Container(
-                  width: 24,
-                  height: 24,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    border: Border.all(color: Colors.white.withOpacity(0.3), width: 1.5),
-                  ),
+            ),
+            if (isSelected)
+              Container(
+                padding: const EdgeInsets.all(4),
+                decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
+                child: const Icon(Icons.check, color: Color(0xFFB71C1C), size: 16),
+              )
+            else
+              Container(
+                width: 24,
+                height: 24,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(color: Colors.white.withOpacity(0.3), width: 1.5),
                 ),
-            ],
-          ),
+              ),
+          ],
         ),
       ),
     );
