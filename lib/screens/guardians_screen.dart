@@ -1,9 +1,12 @@
+export 'guardians_screen.dart';
+
 import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import '../services/guardians_service.dart';
 
 class _UpperCaseTextFormatter extends TextInputFormatter {
@@ -121,7 +124,6 @@ class _GuardiansScreenState extends State<GuardiansScreen> {
     }
   }
 
-  /// Status icon for the ID field
   Widget? _suffixIcon(int idx) {
     if (_isSearching[idx]) {
       return const Padding(
@@ -147,11 +149,11 @@ class _GuardiansScreenState extends State<GuardiansScreen> {
   InputDecoration _fieldDecoration(String hint, {Widget? suffix}) {
     return InputDecoration(
       hintText: hint,
-      hintStyle: TextStyle(color: Colors.white.withOpacity(0.3), fontSize: 14),
+      hintStyle: TextStyle(color: Colors.white.withOpacity(0.5), fontSize: 14),
       isDense: true,
       contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
       filled: true,
-      fillColor: Colors.white.withOpacity(0.08),
+      fillColor: Colors.transparent,
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(10),
         borderSide: BorderSide.none,
@@ -196,7 +198,7 @@ class _GuardiansScreenState extends State<GuardiansScreen> {
                       child: Text(
                         loc.guardians,
                         textAlign: TextAlign.center,
-                        style: TextStyle(
+                        style: const TextStyle(
                           color: Colors.white,
                           fontWeight: FontWeight.w800,
                           fontSize: 20,
@@ -211,12 +213,34 @@ class _GuardiansScreenState extends State<GuardiansScreen> {
                 // ── Guardian rows ──
                 Expanded(
                   child: ListView(
-                    padding: EdgeInsets.only(top: MediaQuery.of(context).size.height < 700 ? 40 : 84),
+                    padding: EdgeInsets.only(top: MediaQuery.of(context).size.height < 700 ? 24 : 40),
                     children: [
-                      for (int i = 0; i < _count; i++) ...[
-                        _buildRow(i),
-                        if (i < _count - 1) const SizedBox(height: 14),
-                      ],
+                      SizedBox(
+                        height: 520,
+                        child: Stack(
+                          alignment: Alignment.center,
+                          children: [
+                            SvgPicture.asset(
+                              'assets/images/scroll_paper.svg',
+                              width: MediaQuery.of(context).size.width - 40,
+                              height: 520,
+                              fit: BoxFit.fill,
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  for (int i = 0; i < _count; i++) ...[
+                                    _buildRowContent(i),
+                                    if (i < _count - 1) const SizedBox(height: 14),
+                                  ],
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
                     ],
                   ),
                 ),
@@ -226,28 +250,29 @@ class _GuardiansScreenState extends State<GuardiansScreen> {
                   padding: const EdgeInsets.only(bottom: 12, top: 8),
                   child: GestureDetector(
                     onTap: _save,
-                    child: Container(
+                    child: SizedBox(
                       key: const Key('guardians_save_button'),
-                      width: 200,
-                      height: 60,
-                      decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.15),
-                        borderRadius: BorderRadius.circular(24),
-                        border: Border.all(
-                          color: Colors.white.withOpacity(0.25),
-                          width: 1,
-                        ),
-                      ),
-                      child: Center(
-                        child: Text(
-                          loc.save,
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 20,
-                            fontWeight: FontWeight.w800,
-                            letterSpacing: 0.5,
+                      width: 220,
+                      height: 70,
+                      child: Stack(
+                        alignment: Alignment.center,
+                        children: [
+                          SvgPicture.asset(
+                            'assets/images/scroll_paper.svg',
+                            width: 220,
+                            height: 70,
+                            fit: BoxFit.fill,
                           ),
-                        ),
+                          Text(
+                            loc.save,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 20,
+                              fontWeight: FontWeight.w800,
+                              letterSpacing: 0.5,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ),
@@ -260,12 +285,11 @@ class _GuardiansScreenState extends State<GuardiansScreen> {
     );
   }
 
-  Widget _buildRow(int idx) {
+  Widget _buildRowContent(int idx) {
     final slot = idx + 1;
 
     return Row(
       children: [
-        // Slot number
         SizedBox(
           width: 24,
           child: Text(
@@ -277,8 +301,6 @@ class _GuardiansScreenState extends State<GuardiansScreen> {
             ),
           ),
         ),
-
-        // ID field
         Expanded(
           flex: 5,
           child: TextField(
@@ -296,10 +318,7 @@ class _GuardiansScreenState extends State<GuardiansScreen> {
             decoration: _fieldDecoration('ID', suffix: _suffixIcon(idx)),
           ),
         ),
-
         const SizedBox(width: 10),
-
-        // Nickname field
         Expanded(
           flex: 5,
           child: TextField(
