@@ -2,9 +2,13 @@
   "settings": "设置",
   "language": "语言",
   "save": "保存",
-  "russian": "Русский",
-  "english": "English",
+  "russian": "俄语",
+  "english": "英语",
   "chinese": "中文",
+  "spanish": "西班牙语",
+  "arabic": "阿拉伯语",
+  "french": "法语",
+  "german": "德语",
   "guardians": "守护者",
   "donate": "捐赠",
   "supportDevelopment": "支持开发",
@@ -19,6 +23,6 @@
   "changeLanguage": "更改语言",
   "anyAmount": "任意金额",
   "welcome": "欢迎",
-  "welcomeDescription": "输入您的姓名，以便\n守护者识别您。",
+  "welcomeDescription": "请输入您的姓名，\n以便守护者识别您。",
   "continueButton": "继续"
 }
