@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../utils/id_generator.dart';
+import '../utils/logger.dart';
 
 class UserService {
   static const String _userIdKey = 'myUserId';
@@ -80,9 +81,9 @@ class UserService {
         await Supabase.instance.client
             .from('users')
             .upsert({'user_id': userId, 'user_name': name},onConflict: 'user_id');
-        print('✅ Supabase upsert success');
+        log('✅ Supabase upsert success');
       } catch (e) {
-        print('❌ Supabase upsert error: $e');
+        log('❌ Supabase upsert error: $e');
         rethrow;
       }
     }

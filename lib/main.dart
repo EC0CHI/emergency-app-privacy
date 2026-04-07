@@ -9,41 +9,42 @@ import 'services/supabase_service.dart';
 import 'services/onesignal_service.dart';
 import 'services/user_service.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'utils/logger.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   try {
     // 1. Инициализация Supabase
-    print('Initializing Supabase...');
+    log('Initializing Supabase...');
     await SupabaseService.initialize();
 
     // 2. Инициализация OneSignal
-    print('Initializing OneSignal...');
+    log('Initializing OneSignal...');
     await OneSignalService.initialize();
     OneSignalService.setupNotificationHandlers();
 
     // 3. Получаем userId (локально)
-    print('Getting user ID...');
+    log('Getting user ID...');
     final userId = await UserService.getUserId();
-    print('User ID: $userId');
+    log('User ID: $userId');
 
     // 4. Устанавливаем External User ID в OneSignal
     await OneSignalService.setExternalUserId(userId);
 
     // 5. Ждем OneSignal Player ID и сохраняем пользователя
-    print('Waiting for OneSignal Player ID...');
+    log('Waiting for OneSignal Player ID...');
     final playerId = await OneSignalService.waitForPlayerId();
 
     if (playerId != null) {
-      print('Saving user to Supabase...');
+      log('Saving user to Supabase...');
       await SupabaseService.saveUser(userId, playerId);
-      print('Setup complete!');
+      log('Setup complete!');
     } else {
-      print('Warning: OneSignal Player ID not received, user not saved to cloud');
+      log('Warning: OneSignal Player ID not received, user not saved to cloud');
     }
   } catch (e) {
-    print('Error during initialization: $e');
+    log('Error during initialization: $e');
   }
 
   runApp(const MyApp());

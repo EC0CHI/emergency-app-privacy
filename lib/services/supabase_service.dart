@@ -1,5 +1,6 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../config/supabase_config.dart';
+import '../utils/logger.dart';
 
 class SupabaseService {
   static final SupabaseClient _client = Supabase.instance.client;
@@ -10,7 +11,7 @@ class SupabaseService {
       url: SupabaseConfig.supabaseUrl,
       anonKey: SupabaseConfig.supabaseAnonKey,
     );
-    print('Supabase initialized');
+    log('Supabase initialized');
   }
 
   /// Сохранение или обновление пользователя
@@ -30,17 +31,17 @@ class SupabaseService {
           'onesignal_id': oneSignalId,
           'last_seen': DateTime.now().toIso8601String(),
         });
-        print('New user created: $userId');
+        log('New user created: $userId');
       } else {
         // Обновляем существующего
         await _client.from('users').update({
           'onesignal_id': oneSignalId,
           'last_seen': DateTime.now().toIso8601String(),
         }).eq('user_id', userId);
-        print('User updated: $userId');
+        log('User updated: $userId');
       }
     } catch (e) {
-      print('Error saving user: $e');
+      log('Error saving user: $e');
       rethrow;
     }
   }
@@ -63,7 +64,7 @@ class SupabaseService {
           .not('onesignal_id', 'is', null);
 
       if (response == null || response.isEmpty) {
-        print('Guardians not found for: $validIds');
+        log('Guardians not found for: $validIds');
         return [];
       }
 
@@ -73,10 +74,10 @@ class SupabaseService {
           .cast<String>()
           .toList();
 
-      print('Found ${ids.length} guardians out of ${validIds.length}');
+      log('Found ${ids.length} guardians out of ${validIds.length}');
       return ids;
     } catch (e) {
-      print('Error fetching OneSignal IDs: $e');
+      log('Error fetching OneSignal IDs: $e');
       return [];
     }
   }
@@ -88,7 +89,7 @@ class SupabaseService {
         'last_seen': DateTime.now().toIso8601String(),
       }).eq('user_id', userId);
     } catch (e) {
-      print('Error updating last_seen: $e');
+      log('Error updating last_seen: $e');
     }
   }
 
@@ -103,7 +104,7 @@ class SupabaseService {
 
       return response != null;
     } catch (e) {
-      print('Error checking user: $e');
+      log('Error checking user: $e');
       return false;
     }
   }
