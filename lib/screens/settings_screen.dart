@@ -260,7 +260,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                 ),
                               ),
 
-                              const SizedBox(height: 14),
+                              const SizedBox(height: 2),
 
                               _buildMenuCard(
                                 icon: Icons.favorite_outline,
@@ -272,7 +272,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                 ),
                               ),
 
-                              const SizedBox(height: 14),
+                              const SizedBox(height: 2),
 
                               _buildMenuCard(
                                 icon: Icons.language_outlined,

@@ -162,7 +162,7 @@ class _MainScreenState extends State<MainScreen> with SingleTickerProviderStateM
         margin: EdgeInsets.only(
           left: 24,
           right: 24,
-          bottom: MediaQuery.of(context).size.height * 0.17,
+          bottom: MediaQuery.of(context).size.height * 0.20,
         ),
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
         duration: Duration(seconds: isError ? 4 : 3),
@@ -279,11 +279,11 @@ class _MainScreenState extends State<MainScreen> with SingleTickerProviderStateM
                     Column(
                       children: [
                         Text(
-                          _isSending
-                              ? loc.sendingAlert
-                              : _isLongPressing
-                                  ? loc.keepHolding
-                                  : loc.holdToSend,
+                        _isSending
+                            ? loc.sendingAlert
+                            : _isLongPressing
+                                ? '${loc.keepHolding} ${(5 - (_pressProgress * 5)).ceil()}'
+                                : loc.holdToSend,
                           style: TextStyle(
                             fontSize: 14,
                             color: Colors.white.withOpacity(0.6),
