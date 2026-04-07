@@ -1,4 +1,4 @@
-package com.example.emergency_app
+package com.ec0chi.guardians
 
 import io.flutter.embedding.android.FlutterActivity
 
